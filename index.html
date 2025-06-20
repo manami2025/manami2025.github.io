@@ -1,194 +1,142 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>温泉津温泉　店舗マップ</title>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAE5sybi3eDWilyCfnTjto8iKzOezd9ivA=places" async defer></script>
-    <style>
-        #map {
-            width: 100%;
-            height: 800px;
-            min-height: 500px;
-            background-color: #e0e0e0;
-            position: relative;
-        }
-        .info-window iframe {
-            width: 100%;
-            height: 200px;
-            border: none;
-            cursor: pointer;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>温泉津温泉　店舗マップ</title>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAE5sybi3eDWilyCfnTjto8iKzOezd9ivA&libraries=places" async defer></script>
+  <style>
+    #map {
+      width: 100%;
+      height: 800px;
+      min-height: 500px;
+      background-color: #e0e0e0;
+    }
+    .info-window a {
+      word-break: break-all;
+    }
+  </style>
 </head>
 <body>
-    <h2>温泉津温泉　一覧マップ</h2>
-    <p>温泉津温泉の宿泊、飲食、お土産屋さんをまとめました。リンクをクリックして詳細をご覧ください。</p>
-    <div id="map"></div>
+  <h2>温泉津温泉　一覧マップ</h2>
+  <p>温泉津温泉の宿泊、飲食、お土産屋さんをまとめました。リンクをクリックして詳細をご覧ください。</p>
+  <div id="map"></div>
 
-    <script>
-        let map;
-        let markers = [];
-        let bounds;
-        let infoWindow;
+  <script>
+    let map;
+    let markers = [];
+    let bounds;
+    let infoWindow;
 
-        window.onload = function() {
-            console.log("🔄 Google Maps API のロードを確認");
-            let checkGoogleMaps = setInterval(() => {
-                if (typeof google !== "undefined" && typeof google.maps !== "undefined") {
-                    clearInterval(checkGoogleMaps);
-                    initMap();
-                }
-            }, 500);
-        };
-
-        function initMap() {
-            console.log("✅ initMap() 開始");
-
-            const mapElement = document.getElementById("map");
-            if (!mapElement) {
-                console.error("❌ #map が見つかりません。");
-                return;
-            }
-
-            map = new google.maps.Map(mapElement, {
-                center: { lat: 34.144389, lng: 131.429866 },
-                zoom: 14
-            });
-
-            console.log("✅ Google マップが正常に読み込まれました");
-            fetchSpreadsheetData();
+    window.onload = function() {
+      let checkGoogleMaps = setInterval(() => {
+        if (typeof google !== "undefined" && typeof google.maps !== "undefined") {
+          clearInterval(checkGoogleMaps);
+          initMap();
         }
+      }, 500);
+    };
 
-        function fetchSpreadsheetData() {
-            const sheetApiUrl = "https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/%E3%82%B7%E3%83%BC%E3%83%881?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk";
+    function initMap() {
+      const mapElement = document.getElementById("map");
+      if (!mapElement) {
+        console.error("#map が見つかりません。");
+        return;
+      }
 
-            console.log("🔄 GoogleスプレッドシートAPIリクエスト送信:", sheetApiUrl);
+      map = new google.maps.Map(mapElement, {
+        center: { lat: 34.144389, lng: 131.429866 },
+        zoom: 14
+      });
 
-            fetch(sheetApiUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(HTTPエラー: ${response.status});
-                    }
-                    return response.json();
-                })
-                .then(data => processData(data))
-                .catch(error => console.error("❌ データ取得エラー:", error.message));
-        }
+      fetchSpreadsheetData();
+    }
 
-        function processData(data) {
-            console.log("✅ 取得データ:", data);
+    function fetchSpreadsheetData() {
+      const sheetApiUrl = "https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/%E3%82%B7%E3%83%BC%E3%83%881?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk";
 
-            if (!data || !data.values || !Array.isArray(data.values) || data.values.length < 2) {
-                console.error("⚠️ データが不正または空です", data);
-                return;
-            }
+      fetch(sheetApiUrl)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTPエラー: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => processData(data))
+        .catch(error => console.error("データ取得エラー:", error.message));
+    }
 
-            const headers = data.values[0].map(header => header.trim());
-            console.log("🔍 ヘッダー情報:", headers);
-            const facilities = data.values.slice(1).map(row => {
-                let obj = {};
-                headers.forEach((header, index) => {
-                    obj[header] = row[index] || "";
-                });
-                return obj;
-            });
+    function processData(data) {
+      if (!data || !data.values || !Array.isArray(data.values) || data.values.length < 2) {
+        console.error("データが不正または空です", data);
+        return;
+      }
 
-            updateMapMarkers(facilities);
-        }
+      const headers = data.values[0].map(header => header.trim());
+      const facilities = data.values.slice(1).map(row => {
+        let obj = {};
+        headers.forEach((header, index) => {
+          obj[header] = row[index] || "";
+        });
+        return obj;
+      });
 
-        function convertYouTubeEmbed(url) {
-            if (!url) return "";
+      updateMapMarkers(facilities);
+    }
 
-            let videoId = "";
-            let originalUrl = url.trim();
+    function updateMapMarkers(facilities) {
+      markers.forEach(marker => marker.setMap(null));
+      markers = [];
+      bounds = new google.maps.LatLngBounds();
 
-            if (originalUrl.includes("youtube.com/watch?v=")) {
-                videoId = originalUrl.split("v=")[1].split("&")[0];
-            } else if (originalUrl.includes("youtu.be/")) {
-                videoId = originalUrl.split("youtu.be/")[1].split("?")[0];
-            }
+      if (infoWindow) {
+        infoWindow.close();
+      }
 
-            return {
-                embedUrl: videoId ? https://www.youtube.com/embed/${videoId} : "",
-                originalUrl: originalUrl
-            };
-        }
+      let markerCount = 0;
 
-        function updateMapMarkers(facilities) {
-            console.log("🔄 マーカー追加処理開始");
+      facilities.forEach(facility => {
+        if (!facility["緯度"] || !facility["経度"]) return;
 
-            markers.forEach(marker => marker.setMap(null));
-            markers = [];
-            bounds = new google.maps.LatLngBounds();
+        const lat = parseFloat(facility["緯度"]);
+        const lng = parseFloat(facility["経度"]);
 
-            if (infoWindow) {
-                infoWindow.close();
-            }
+        if (isNaN(lat) || isNaN(lng)) return;
 
-            let markerCount = 0;
+        const position = new google.maps.LatLng(lat, lng);
+        const marker = new google.maps.Marker({
+          position: position,
+          map: map,
+          title: facility["場所"] || "不明"
+        });
 
-            facilities.forEach(facility => {
-                console.log("📌 処理中の施設:", facility);
+        markers.push(marker);
+        bounds.extend(position);
+        markerCount++;
 
-                if (!facility["緯度"] || !facility["経度"]) {
-                    console.warn("⚠️ 緯度・経度データが存在しません:", facility);
-                    return;
-                }
+        marker.addListener("click", function () {
+          if (infoWindow) infoWindow.close();
 
-                const lat = parseFloat(facility["緯度"]);
-                const lng = parseFloat(facility["経度"]);
+          infoWindow = new google.maps.InfoWindow({
+            content: `
+              <div class="info-window" style="max-width: 300px;">
+                <h2>${facility["場所"] || "情報なし"}</h2>
+                <p><strong>定休日:</strong> ${facility["定休日"] || "情報なし"}</p>
+                <p><strong>営業時間:</strong> ${facility["営業時間"] || "情報なし"}</p>
+                <p><strong>電話番号:</strong> ${facility["電話番号"] || "情報なし"}</p>
+                ${facility["HP"] ? `<p><a href="${facility["HP"]}" target="_blank">ホームページを見る</a></p>` : ""}
+              </div>
+            `
+          });
 
-                if (isNaN(lat) || isNaN(lng)) {
-                    console.warn("⚠️ 数値に変換できない緯度・経度:", facility["緯度"], facility["経度"]);
-                    return;
-                }
+          infoWindow.open(map, marker);
+        });
+      });
 
-                const position = new google.maps.LatLng(lat, lng);
-                const marker = new google.maps.Marker({
-                    position: position,
-                    map: map,
-                    title: facility["場所"] || "不明"
-                });
-
-                markers.push(marker);
-                bounds.extend(position);
-                markerCount++;
-
-                let { embedUrl, originalUrl } = convertYouTubeEmbed(facility["動画URL"]);
-
-                console.log("🎥 埋め込み動画URL: " + embedUrl);
-                console.log("🔗 元の動画URL: " + originalUrl);
-
-                marker.addListener("click", function () {
-                    if (infoWindow) {
-                        infoWindow.close();
-                    }
-
-                    infoWindow = new google.maps.InfoWindow({
-                        content: 
-                            <div class="info-window" style="max-width: 300px; position: relative;">
-                                <h2>${facility["場所"] || "情報なし"}</h2>
-                                <p><strong>住所:</strong> ${facility["住所"] || "情報なし"}</p>
-                                <p>詳細: ${facility["説明"] || "情報なし"}</p>
-                                ${embedUrl ? <iframe src="${embedUrl}" allowfullscreen></iframe> : ""}
-                                <p>撮影日: ${facility["撮影日"] || "情報なし"}</p>
-                                <p><a href="${originalUrl}" target="_blank">YouTubeで開く</a></p>
-                                <p><a href="https://maps.google.com/?q=${facility["住所"]}" target="_blank">Googleマップで開く</a></p>
-                            </div>
-                        
-                    });
-
-                    infoWindow.open(map, marker);
-                });
-            });
-
-            if (markerCount > 0) {
-                console.log(✅ マーカー追加完了: ${markerCount} 個);
-                map.fitBounds(bounds);
-            } else {
-                console.warn("⚠️ 有効なマーカーがありません");
-            }
-        }
-    </script>
+      if (markerCount > 0) {
+        map.fitBounds(bounds);
+      }
+    }
+  </script>
 </body>
 </html>
+
