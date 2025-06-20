@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>温泉津温泉　店舗マップ</title>
+  <meta charset="UTF-8" />
+  <title>温泉津温泉 店舗マップ</title>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAE5sybi3eDWilyCfnTjto8iKzOezd9ivA&libraries=places" async defer></script>
   <style>
     #map {
@@ -12,12 +12,12 @@
       background-color: #e0e0e0;
     }
     .info-window a {
-      word-break: break-all;
+      word-break: break-word;
     }
   </style>
 </head>
 <body>
-  <h2>温泉津温泉　一覧マップ</h2>
+  <h2>温泉津温泉 一覧マップ</h2>
   <p>温泉津温泉の宿泊、飲食、お土産屋さんをまとめました。リンクをクリックして詳細をご覧ください。</p>
   <div id="map"></div>
 
@@ -27,7 +27,7 @@
     let bounds;
     let infoWindow;
 
-    window.onload = function() {
+    window.onload = function () {
       let checkGoogleMaps = setInterval(() => {
         if (typeof google !== "undefined" && typeof google.maps !== "undefined") {
           clearInterval(checkGoogleMaps);
@@ -45,34 +45,42 @@
 
       map = new google.maps.Map(mapElement, {
         center: { lat: 34.144389, lng: 131.429866 },
-        zoom: 14
+        zoom: 14,
       });
 
       fetchSpreadsheetData();
     }
 
     function fetchSpreadsheetData() {
-      const sheetApiUrl = "https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/%E3%82%B7%E3%83%BC%E3%83%881?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk";
+      const sheetApiUrl =
+        "https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/%E3%82%B7%E3%83%BC%E3%83%881?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk";
 
       fetch(sheetApiUrl)
-        .then(response => {
+        .then((response) => {
           if (!response.ok) {
             throw new Error(`HTTPエラー: ${response.status}`);
           }
           return response.json();
         })
-        .then(data => processData(data))
-        .catch(error => console.error("データ取得エラー:", error.message));
+        .then((data) => processData(data))
+        .catch((error) =>
+          console.error("❌ データ取得エラー:", error.message)
+        );
     }
 
     function processData(data) {
-      if (!data || !data.values || !Array.isArray(data.values) || data.values.length < 2) {
+      if (
+        !data ||
+        !data.values ||
+        !Array.isArray(data.values) ||
+        data.values.length < 2
+      ) {
         console.error("データが不正または空です", data);
         return;
       }
 
-      const headers = data.values[0].map(header => header.trim());
-      const facilities = data.values.slice(1).map(row => {
+      const headers = data.values[0].map((header) => header.trim());
+      const facilities = data.values.slice(1).map((row) => {
         let obj = {};
         headers.forEach((header, index) => {
           obj[header] = row[index] || "";
@@ -84,7 +92,7 @@
     }
 
     function updateMapMarkers(facilities) {
-      markers.forEach(marker => marker.setMap(null));
+      markers.forEach((marker) => marker.setMap(null));
       markers = [];
       bounds = new google.maps.LatLngBounds();
 
@@ -94,19 +102,18 @@
 
       let markerCount = 0;
 
-      facilities.forEach(facility => {
+      facilities.forEach((facility) => {
         if (!facility["緯度"] || !facility["経度"]) return;
 
         const lat = parseFloat(facility["緯度"]);
         const lng = parseFloat(facility["経度"]);
-
         if (isNaN(lat) || isNaN(lng)) return;
 
         const position = new google.maps.LatLng(lat, lng);
         const marker = new google.maps.Marker({
           position: position,
           map: map,
-          title: facility["場所"] || "不明"
+          title: facility["場所"] || "不明",
         });
 
         markers.push(marker);
@@ -123,9 +130,13 @@
                 <p><strong>定休日:</strong> ${facility["定休日"] || "情報なし"}</p>
                 <p><strong>営業時間:</strong> ${facility["営業時間"] || "情報なし"}</p>
                 <p><strong>電話番号:</strong> ${facility["電話番号"] || "情報なし"}</p>
-                ${facility["HP"] ? `<p><a href="${facility["HP"]}" target="_blank">ホームページを見る</a></p>` : ""}
+                ${
+                  facility["HP"]
+                    ? `<p><a href="${facility["HP"]}" target="_blank">ホームページを見る</a></p>`
+                    : ""
+                }
               </div>
-            `
+            `,
           });
 
           infoWindow.open(map, marker);
@@ -136,6 +147,10 @@
         map.fitBounds(bounds);
       }
     }
+  </script>
+</body>
+</html>
+
   </script>
 </body>
 </html>
