@@ -123,20 +123,19 @@
         marker.addListener("click", function () {
           if (infoWindow) infoWindow.close();
 
+
+          let contentHtml = '<div class="info-window" style="max-width: 300px;">';
+          contentHtml += `<h2>${facility["場所"] || "情報なし"}</h2>`;
+          contentHtml += `<p><strong>定休日:</strong> ${facility["定休日"] || "情報なし"}</p>`;
+          contentHtml += `<p><strong>営業時間:</strong> ${facility["営業時間"] || "情報なし"}</p>`;
+          contentHtml += `<p><strong>電話番号:</strong> ${facility["電話番号"] || "情報なし"}</p>`;
+          if (facility["HP"]) {
+            contentHtml += `<p><a href="${facility["HP"]}" target="_blank">ホームページを見る</a></p>`;
+          }
+          contentHtml += '</div>';
+
           infoWindow = new google.maps.InfoWindow({
-            content: `
-              <div class="info-window" style="max-width: 300px;">
-                <h2>${facility["場所"] || "情報なし"}</h2>
-                <p><strong>定休日:</strong> ${facility["定休日"] || "情報なし"}</p>
-                <p><strong>営業時間:</strong> ${facility["営業時間"] || "情報なし"}</p>
-                <p><strong>電話番号:</strong> ${facility["電話番号"] || "情報なし"}</p>
-                ${
-                  facility["HP"]
-                    ? `<p><a href="${facility["HP"]}" target="_blank">ホームページを見る</a></p>`
-                    : ""
-                }
-              </div>
-            `,
+            content: contentHtml
           });
 
           infoWindow.open(map, marker);
@@ -150,8 +149,3 @@
   </script>
 </body>
 </html>
-
-  </script>
-</body>
-</html>
-
