@@ -566,6 +566,9 @@
         fullscreenControl: false
       });
 
+      // マップのズーム変更イベントリスナーを設定
+      map.addListener('zoom_changed', adjustMarkerLabelVisibility);
+
       const searchBox = document.getElementById("searchBox");
       if (searchBox) {
           searchBox.addEventListener("input", filterMarkers);
@@ -642,6 +645,20 @@
       return `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`;
     }
 
+    // マーカーラベルの表示/非表示をズームレベルに応じて調整する関数
+    function adjustMarkerLabelVisibility() {
+        const currentZoom = map.getZoom();
+        const showLabels = currentZoom >= 19; // ズームレベル19以上で表示
+
+        markers.forEach(marker => {
+            // 現在のラベルオプションを取得し、opacityのみ変更して適用
+            const currentLabel = marker.getLabel();
+            if (currentLabel) {
+                marker.setOptions({ label: { ...currentLabel, opacity: showLabels ? 1 : 0 } });
+            }
+        });
+    }
+
     function updateMapMarkers(facilitiesToDisplay) {
       markers.forEach(marker => marker.setMap(null));
       markers = [];
@@ -659,7 +676,7 @@
 
           let displayableText = text.substring(0, totalMaxChars);
           if (text.length > totalMaxChars) {
-              displayableText = displayableText.substring(0, totalMaxChars - 1) + '…'; 
+              displayableText = text.substring(0, totalMaxChars - 1) + '…'; 
               if (displayableText.length > totalMaxChars) {
                  displayableText = displayableText.substring(0, totalMaxChars - 1) + '…';
               }
@@ -690,21 +707,10 @@
         const iconWidth = 32;
         const iconHeight = 32;
         
-        // ラベルのX座標: ラベルの幅の半分だけ左にずらして、ラベル全体がアイコンの中心に来るようにする
-        // ラベルのフォントサイズ10pxで5文字の幅はおおよそ50pxと仮定
-        const estimatedLabelWidth = 50; 
-        const labelOriginX = iconWidth / 2 - (estimatedLabelWidth / 2);
-
-        // ラベルのY座標: アイコンの上部 (Y=0) から、ラベルが下にずれて表示されるように調整。
-        // アイコンの上部に表示したいので、Y座標はアイコンの高さ (iconHeight) よりも小さい負の値。
-        // ラベル自体が2行になると高さが出るので、その半分をアイコンの中心(16)から上にずらす。
-        // labelOriginのYはラベルの左上隅のY座標。
-        // アイコンの Y=0 はアイコン画像の一番上。
-        // ラベルをアイコンの上（画像の中央より上）に表示したい場合
-        // 例：-10px はアイコン画像の一番上から上に10pxずれる
-        // ラベルが2行で高さ24pxとすると、中央に合わせるには高さの半分12pxを上にずらす
-        const estimatedLabelHeight = 24; // 2行のラベルのおおよその高さ
-        const labelOriginY = -estimatedLabelHeight / 2 - 5; // ラベルの上部をアイコンの上端から上に5pxずらす
+        // ラベルはデフォルト位置 (アイコンの上部) に戻すため、labelOriginは削除
+        // もしアイコン中央より少し上などに調整したい場合は、labelOriginを再設定
+        // const labelOriginX = iconWidth / 2; // 例: アイコン水平中央
+        // const labelOriginY = 0; // 例: アイコン上端 (デフォルトに近い)
 
         const marker = new google.maps.Marker({
           position: position,
@@ -719,19 +725,16 @@
             color: "#888",
             fontSize: "10px",
             fontWeight: "bold",
-            opacity: 0, // 初期状態ではラベルを非表示 (透明) にする
+            // 初期opacityは現在のズームレベルに応じて設定
+            opacity: map.getZoom() >= 19 ? 1 : 0, 
           },
-          labelOrigin: new google.maps.Point(labelOriginX, labelOriginY),
+          // labelOriginは削除しました。デフォルト位置に戻ります。
           animation: google.maps.Animation.DROP
         });
 
-        marker.addListener("mouseover", () => {
-          marker.setOptions({ label: { ...marker.getLabel(), opacity: 1 } });
-        });
-
-        marker.addListener("mouseout", () => {
-          marker.setOptions({ label: { ...marker.getLabel(), opacity: 0 } });
-        });
+        // マウスオーバー/マウスアウトのイベントリスナーは削除しました
+        // marker.addListener("mouseover", ...);
+        // marker.addListener("mouseout", ...);
 
         let infoHtml = `
           <div class="info-window">
@@ -741,7 +744,7 @@
             <p><strong>営業時間:</strong> ${facility["営業時間"] || "不明"}</p>
             <p><strong>電話番号:</strong> ${facility["電話番号"] || "なし"}</p>
             ${facility["HP"] ? `<p><a href="${facility["HP"]}" target="_blank" rel="noopener noreferrer">ホームページを見る</a></p>` : ''}
-            <p><a href="https://developers.google.com/maps/documentation/maps-static/cloud-customization/zoom-levels-leg?hl=ja2{encodeURIComponent(name + " " + facility["住所"])}" target="_blank" rel="noopener noreferrer">Googleマップで詳細を見る</a></p>
+            <p><a href="https://developers.google.com/maps/documentation/maps-static/cloud-customization/zoom-levels-leg?hl=ja3{encodeURIComponent(name + " " + facility["住所"])}" target="_blank" rel="noopener noreferrer">Googleマップで詳細を見る</a></p>
           </div>
         `;
 
@@ -763,6 +766,9 @@
           map.setCenter(defaultCenter);
           map.setZoom(defaultZoom);
       }
+      
+      // マーカー更新後、念のためラベル表示状態を調整
+      adjustMarkerLabelVisibility();
     }
 
     function filterMarkers() {
