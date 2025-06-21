@@ -432,11 +432,8 @@
     }
 
     function fetchSpreadsheetData() {
-      // スプレッドシートのAPIキーとURLは、ご自身のものに置き換えてください。
-      // また、APIキーは公開しても問題ないですが、セキュリティ上の理由からサーバーサイドで処理するか、
-      // 制限付きAPIキーを使用することを強く推奨します。
       const sheetApiUrl =
-        "https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/%Eシート1?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk"; // '%Eシート1' を 'シート1' に修正しました
+        "https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/シート1?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk"; 
 
       fetch(sheetApiUrl)
         .then((response) => {
@@ -462,16 +459,10 @@
 
     function getIconUrl(category) {
       const color = categoryColors[category] || "gray";
-      // Google Mapsのドットアイコンは非推奨になる可能性があります。
-      // カスタムアイコンを使用することを検討してください。
       return `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`;
     }
 
     function updateMapMarkers(facilities) {
-      // 既存のマーカーを全てクリア
-      markers.forEach(marker => marker.setMap(null));
-      markers = [];
-
       bounds = new google.maps.LatLngBounds();
       if (infoWindow) infoWindow.close();
 
