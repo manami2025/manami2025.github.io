@@ -396,6 +396,7 @@
       }
     ];
 
+    // 温泉津温泉の推奨される中心座標
     const defaultCenter = { lat: 35.09647639047312, lng: 132.3470713278045 };
 
     // カテゴリー別にアイコン色を定義
@@ -419,8 +420,8 @@
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 35.0963915628715, lng: 132.34470995757528 },
-        zoom: 16,
+        center: { lat: 35.0963915628715, lng: 132.34470995757528 }, // 温泉津温泉の中心に近い座標
+        zoom: 16, // 初期ズームレベル。fitBoundsが上書きする可能性あり
         styles: mapStyles
       });
 
@@ -430,6 +431,8 @@
     }
 
     function fetchSpreadsheetData() {
+      // スプレッドシートのAPIキーとURLは、ご自身のものに置き換えてください。
+      // APIキーのセキュリティ設定（HTTPリファラー制限など）を確認してください。
       const sheetApiUrl =
         "https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/シート1?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk";
 
@@ -457,11 +460,13 @@
 
     function getIconUrl(category) {
       const color = categoryColors[category] || "gray";
+      // Google Mapsのドットアイコンは非推奨になる可能性があります。
+      // より持続可能なカスタムアイコンの使用を検討してください。
       return `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`;
     }
 
     function updateMapMarkers(facilities) {
-      // **既存のマーカーを全てクリア** (検索時など、マーカーを再描画する際に重要)
+      // 既存のマーカーを全てクリア (検索時など、マーカーを再描画する際に重要)
       markers.forEach(marker => marker.setMap(null));
       markers = []; // マーカー配列も空にする
 
@@ -476,7 +481,7 @@
 
         if (isNaN(lat) || isNaN(lng)) {
           console.warn(`緯度または経度が無効です: ${name}, Lat: ${facility["緯度"]}, Lng: ${facility["経度"]}`);
-          return;
+          return; // 無効な緯度経度ではマーカーを作成しない
         }
 
         const position = new google.maps.LatLng(lat, lng);
@@ -514,7 +519,7 @@
         });
 
         markers.push(marker);
-        bounds.extend(position);
+        bounds.extend(position); // 各マーカーの座標をboundsに追加
       });
 
       // マーカーの表示とズームレベルの調整
@@ -530,7 +535,7 @@
         // もしマーカーが1つしかない場合、fitBoundsは非常にワイドなズームになることがあるため、
         // その場合は中心を設定し直して適切なズームにする
         if (markers.length === 1) {
-            map.setCenter(markers[0].getPosition());
+            map.setCenter(markers[0].getPosition()); // 単一マーカーを中心に設定
             map.setZoom(17); // 単一マーカーに最適なズームレベル
         }
       } else {
@@ -538,7 +543,7 @@
         map.setCenter(defaultCenter);
         map.setZoom(15);
       }
-    } // updateMapMarkers 関数の正しい閉じ括弧。この行は変更なし。
+    }
 
     function filterMarkers() {
       const keyword = document.getElementById("searchBox").value.toLowerCase();
