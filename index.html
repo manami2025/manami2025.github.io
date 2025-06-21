@@ -512,14 +512,7 @@
         bounds.extend(position);
       });
 
-      if (markers.length > 0) {
-        map.fitBounds(bounds);
-      } else {
-        // マーカーがない場合はデフォルトの場所にズーム
-        map.setCenter(defaultCenter);
-        map.setZoom(15);
-      }
-    }
+
 
     function filterMarkers() {
       const keyword = document.getElementById("searchBox").value.toLowerCase();
