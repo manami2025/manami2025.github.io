@@ -528,8 +528,8 @@
 
         // fitBoundsが広範囲にズームアウトした場合に、最低限のズームレベルを保証する
         // 例: 現在のズームレベルが17より小さかったら、17に設定し直す
-        if (map.getZoom() < 17) {
-            map.setZoom(17);
+        if (map.getZoom() < 16) {
+            map.setZoom(16);
         }
 
         // もしマーカーが1つしかない場合、fitBoundsは非常にワイドなズームになることがあるため、
@@ -541,7 +541,7 @@
       } else {
         // マーカーがない場合（検索結果が0件など）はデフォルトの場所にズーム
         map.setCenter(defaultCenter);
-        map.setZoom(15);
+        map.setZoom(16);
       }
     }
 
