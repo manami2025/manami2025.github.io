@@ -6,6 +6,7 @@
   <title>温泉津温泉 店舗マップ</title>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk&libraries=places" async defer></script>
   <style>
+    /* 全体設定 */
     html, body {
       height: 100%;
       margin: 0;
@@ -13,121 +14,162 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
+      min-height: 100vh; /* 少なくともビューポートの高さ全体を使う */
+      background-color: #f8f8f8; /* 背景色を追加し、統一感を出す */
+      color: #333;
     }
 
+    /* ヘッダーと説明文 */
     h2 {
-      color: #333;
+      color: #2c3e50; /* 少し濃いめの色 */
       text-align: center;
-      margin-top: 20px;
-      margin-bottom: 10px;
-      font-size: 2em; /* デフォルトで少し大きく */
+      margin: 25px 15px 10px; /* 上下のマージンを調整 */
+      font-size: 2.2em; /* デスクトップで大きめに */
+      letter-spacing: 0.05em; /* 文字間隔 */
     }
     p {
       text-align: center;
       color: #555;
-      margin-bottom: 20px;
-      padding: 0 10px;
-      font-size: 1.1em; /* デフォルトで少し大きく */
+      margin: 0 15px 25px; /* 上下のマージンを調整 */
+      padding: 0;
+      font-size: 1.1em;
+      line-height: 1.6;
     }
 
+    /* 検索ボックス */
     #searchBox {
       display: block;
       width: 90%;
-      max-width: 400px;
-      margin: 0px auto 20px auto;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 16px;
-      box-sizing: border-box;
+      max-width: 450px; /* 少し最大幅を広げる */
+      margin: 0px auto 30px auto; /* マップとの間隔を広げる */
+      padding: 12px 15px; /* 内側の余白を増やす */
+      border: 1px solid #aeb6bf; /* 枠線を少し濃く */
+      border-radius: 8px; /* 角を丸く */
+      font-size: 1.1em; /* フォントサイズを大きく */
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* 影を追加 */
+      box-sizing: border-box; /* paddingとborderをwidthに含める */
+    }
+    #searchBox::placeholder { /* プレースホルダーの色 */
+        color: #888;
     }
 
+    /* マップコンテナ */
     #map {
-      flex-grow: 1;
-      height: calc(100vh - 200px);
-      min-height: 450px; /* ★変更: デフォルトの最小高さをさらに確保 */
+      flex-grow: 1; /* 残りのスペースを埋めるようにマップを拡張 */
+      /* calc() を使ってビューポートの高さからヘッダーと検索ボックスの分を引く */
+      height: calc(100vh - (25px + 10px + 25px + 30px + 12px*2 + 1px*2 + 25px)); /* h2 + p + searchBox + margin/paddingの合計高さを概算で引く */
+      min-height: 480px; /* 最小高さを確保 */
       width: 100%;
-      border: 1px solid #ddd;
+      border: 1px solid #ccc;
       border-radius: 8px;
-      margin-top: 0;
+      overflow: hidden; /* 角丸で地図がはみ出さないように */
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15); /* 影を少し強める */
     }
 
-    /* InfoWindowのスタイルはそのまま */
+    /* InfoWindowのスタイル */
     .gm-style-iw {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 1em; /* ベースのフォントサイズを確保 */
     }
     .gm-style-iw h2 {
-      font-size: 1.2em;
-      margin-bottom: 5px;
-      color: #333;
+      font-size: 1.4em; /* InfoWindowのH2を大きく */
+      margin-top: 0;
+      margin-bottom: 8px;
+      color: #2c3e50;
       text-align: left;
+      line-height: 1.3;
     }
     .gm-style-iw p {
-      font-size: 0.9em;
-      margin-bottom: 3px;
+      font-size: 1em; /* InfoWindowのPを読みやすく */
+      margin-bottom: 5px;
       color: #666;
       text-align: left;
+      line-height: 1.5;
+      padding: 0; /* 親から継承されるpaddingをリセット */
+    }
+    .gm-style-iw strong {
+        color: #444; /* 強調表示を少し濃く */
     }
     .gm-style-iw a {
-      color: #007bff;
+      color: #3498db; /* リンク色を調整 */
       text-decoration: none;
+      font-weight: bold;
     }
     .gm-style-iw a:hover {
       text-decoration: underline;
     }
+    .gm-style-iw iframe { /* InfoWindow内のiframeのスタイル */
+        width: 100%;
+        max-width: 300px; /* インフォウィンドウの幅に合わせて最大幅を設定 */
+        height: 180px; /* 固定高さ */
+        border: none;
+        margin-top: 10px;
+        border-radius: 4px;
+    }
 
-    /* ★修正: 小さい画面用の調整 (例: スマートフォン) */
+
+    /* レスポンシブ対応 (メディアクエリ) */
+
+    /* スマートフォン向け (画面幅 768px 以下) */
     @media (max-width: 768px) {
       h2 {
-        font-size: 1.8em; /* ★変更: さらに大きく */
+        font-size: 1.8em; /* スマートフォンで大きく */
+        margin-top: 20px;
+        margin-bottom: 8px;
+      }
+      p {
+        font-size: 1em; /* スマートフォンで読みやすく */
+        margin-bottom: 20px;
+      }
+      #searchBox {
+        width: 95%; /* 画面の端まで広げる */
+        font-size: 1.05em; /* 見やすいフォントサイズ */
+        padding: 10px 12px; /* タップしやすく */
+      }
+      #map {
+        /* スマートフォンでは、ヘッダーと検索ボックスの高さが縮むため、マップの高さを相対的に大きくする */
+        height: calc(100vh - (20px + 8px + 20px + 30px + 10px*2 + 1px*2 + 15px)); /* h2+p+searchBoxの合計を概算で引く */
+        min-height: 350px; /* 最小高さを調整 */
+      }
+      .gm-style-iw h2 {
+        font-size: 1.2em; /* InfoWindowのH2を調整 */
+      }
+      .gm-style-iw p {
+        font-size: 0.9em; /* InfoWindowのPを調整 */
+      }
+      .gm-style-iw iframe {
+        height: 150px; /* モバイル向けiframe高さ */
+      }
+    }
+
+    /* 非常に小さい画面向け (画面幅 480px 以下) */
+    @media (max-width: 480px) {
+      h2 {
+        font-size: 1.6em; /* さらに小さく */
         margin-top: 15px;
       }
       p {
-        font-size: 1.1em; /* ★変更: 読みやすく */
-        margin-bottom: 15px;
+        font-size: 0.95em; /* さらに調整 */
       }
       #searchBox {
-        width: 95%;
-        font-size: 16px; /* ★変更: 携帯でも見やすいフォントサイズ */
-        padding: 12px; /* ★変更: タップしやすく、ゆったりと */
+        font-size: 1em;
+        padding: 8px 10px;
       }
       #map {
-        height: calc(100vh - 180px); /* ヘッダー分を少し減らす */
-        min-height: 350px; /* ★変更: 最小高さを調整 */
+        /* さらに小さい画面でのマップ高さ調整 */
+        height: calc(100vh - (15px + 8px + 15px + 30px + 8px*2 + 1px*2 + 10px)); /* より厳密な概算 */
+        min-height: 280px; /* 最小高さをさらに調整 */
       }
       .gm-style-iw h2 {
-        font-size: 1.3em; /* ★変更: InfoWindowのH2を大きく */
+        font-size: 1.1em;
       }
       .gm-style-iw p {
-        font-size: 1.0em; /* ★変更: InfoWindowのPを大きく */
+        font-size: 0.85em;
+      }
+      .gm-style-iw iframe {
+        height: 120px; /* 非常に小さい画面向けiframe高さ */
       }
     }
-
-    /* ★修正: 非常に小さい画面用の調整 (例: 狭いスマートフォン) */
-    @media (max-width: 480px) {
-      h2 {
-        font-size: 1.6em; /* さらに調整 */
-      }
-      p {
-        font-size: 1em; /* さらに調整 */
-      }
-      #map {
-        height: calc(100vh - 160px);
-        min-height: 300px; /* ★変更: 最小高さを調整 */
-      }
-      #searchBox {
-        font-size: 16px; /* 携帯でも見やすいフォントサイズを維持 */
-        padding: 10px;
-      }
-      .gm-style-iw h2 {
-        font-size: 1.2em; /* さらに調整 */
-      }
-      .gm-style-iw p {
-        font-size: 0.9em; /* さらに調整 */
-      }
-    }
-
   </style>
 </head>
 <body>
@@ -139,334 +181,13 @@
   <script>
     let map;
     let markers = [];
-    let bounds;
     let infoWindow;
     let allFacilities = [];
 
-    const mapStyles = [
-      {
-        "elementType": "geometry",
-        "stylers": [
-          {
-            "color": "#ebe3cd"
-          }
-        ]
-      },
-      {
-        "elementType": "labels.text.fill",
-        "stylers": [
-          {
-            "color": "#523735"
-          }
-        ]
-      },
-      {
-        "elementType": "labels.text.stroke",
-        "stylers": [
-          {
-            "color": "#f5f1e6"
-          }
-        ]
-      },
-      {
-        "featureType": "administrative",
-        "elementType": "geometry",
-        "stylers": [
-          {
-            "visibility": "off"
-          }
-        ]
-      },
-      {
-        "featureType": "administrative",
-        "elementType": "geometry.stroke",
-        "stylers": [
-          {
-            "color": "#c9b2a6"
-          }
-        ]
-      },
-      {
-        "featureType": "administrative.land_parcel",
-        "elementType": "geometry.stroke",
-        "stylers": [
-          {
-            "color": "#dcd2be"
-          }
-        ]
-      },
-      {
-        "featureType": "administrative.land_parcel",
-        "elementType": "labels.text.fill",
-        "stylers": [
-          {
-            "color": "#ae9e90"
-          }
-        ]
-      },
-      {
-        "featureType": "landscape.natural",
-        "elementType": "geometry",
-        "stylers": [
-          {
-            "color": "#dfd2ae"
-          }
-        ]
-      },
-      {
-        "featureType": "poi",
-        "stylers": [
-          {
-            "visibility": "off"
-          }
-        ]
-      },
-      {
-        "featureType": "poi",
-        "elementType": "geometry",
-        "stylers": [
-          {
-            "color": "#dfd2ae"
-          }
-        ]
-      },
-      {
-        "featureType": "poi",
-        "elementType": "labels.text.fill",
-        "stylers": [
-          {
-            "color": "#93817c"
-          }
-        ]
-      },
-      {
-        "featureType": "poi.park",
-        "elementType": "geometry.fill",
-        "stylers": [
-          {
-            "color": "#a5b076"
-          }
-        ]
-      },
-      {
-        "featureType": "poi.park",
-        "elementType": "labels.text.fill",
-        "stylers": [
-          {
-            "color": "#447530"
-          }
-        ]
-      },
-      {
-        "featureType": "road",
-        "elementType": "geometry",
-        "stylers": [
-          {
-            "color": "#f5f1e6"
-          }
-        ]
-      },
-      {
-        "featureType": "road",
-        "elementType": "labels.icon",
-        "stylers": [
-          {
-            "visibility": "off"
-          }
-        ]
-      },
-      {
-        "featureType": "road.arterial",
-        "elementType": "geometry",
-        "stylers": [
-          {
-            "color": "#fdfcf8"
-          }
-        ]
-      },
-      {
-        "featureType": "road.highway",
-        "elementType": "geometry",
-        "stylers": [
-          {
-            "color": "#f8c967"
-          }
-        ]
-      },
-      {
-        "featureType": "road.highway",
-        "elementType": "geometry.stroke",
-        "stylers": [
-          {
-            "color": "#e9bc62"
-          }
-        ]
-      },
-      {
-        "featureType": "road.highway.controlled_access",
-        "elementType": "geometry",
-        "stylers": [
-          {
-            "color": "#e98d58"
-          }
-        ]
-      },
-      {
-        "featureType": "road.highway.controlled_access",
-        "elementType": "geometry.stroke",
-        "stylers": [
-          {
-            "color": "#db8555"
-          }
-        ]
-      },
-      {
-        "featureType": "road.local",
-        "elementType": "labels.text.fill",
-        "stylers": [
-          {
-            "color": "#806b63"
-          }
-        ]
-      },
-      {
-        "featureType": "transit",
-        "stylers": [
-          {
-            "visibility": "off"
-          }
-        ]
-      },
-      {
-        "featureType": "transit.line",
-        "elementType": "geometry",
-        "stylers": [
-          {
-            "color": "#dfd2ae"
-          }
-        ]
-      },
-      {
-        "featureType": "transit.line",
-        "elementType": "labels.text.fill",
-        "stylers": [
-          {
-            "color": "#8f7d77"
-          }
-        ]
-      },
-      {
-        "featureType": "transit.line",
-        "elementType": "labels.text.stroke",
-        "stylers": [
-          {
-            "color": "#ebe3cd"
-          }
-        ]
-      },
-      {
-        "featureType": "transit.station",
-        "elementType": "geometry",
-        "stylers": [
-          {
-            "color": "#dfd2ae"
-          }
-        ]
-      },
-      {
-        "featureType": "transit.station.rail",
-        "elementType": "geometry",
-        "stylers": [
-          {
-            "visibility": "on"
-          }
-        ]
-      },
-      {
-        "featureType": "transit.station.rail",
-        "elementType": "geometry.fill",
-        "stylers": [
-          {
-            "visibility": "simplified"
-          }
-        ]
-      },
-      {
-        "featureType": "transit.station.rail",
-        "elementType": "geometry.stroke",
-        "stylers": [
-          {
-            "visibility": "simplified"
-          }
-        ]
-      },
-      {
-        "featureType": "transit.station.rail",
-        "elementType": "labels.icon",
-        "stylers": [
-          {
-            "visibility": "simplified"
-          }
-        ]
-      },
-      {
-        "featureType": "transit.station.rail",
-        "elementType": "labels.text",
-        "stylers": [
-          {
-            "visibility": "simplified"
-          }
-        ]
-      },
-      {
-        "featureType": "transit.station.rail",
-        "elementType": "labels.text.fill",
-        "stylers": [
-          {
-            "visibility": "simplified"
-          }
-        ]
-      },
-      {
-        "featureType": "water",
-        "elementType": "geometry.fill",
-        "stylers": [
-          {
-            "color": "#b9d3c2"
-          }
-        ]
-      },
-      {
-        "featureType": "water",
-        "elementType": "labels.text",
-        "stylers": [
-          {
-            "visibility": "simplified"
-          }
-        ]
-      },
-      {
-        "featureType": "water",
-        "elementType": "labels.text.fill",
-        "stylers": [
-          {
-            "color": "#92998d"
-          }
-        ]
-      },
-      {
-        "featureType": "water",
-        "elementType": "labels.text.stroke",
-        "stylers": [
-          {
-            "visibility": "simplified"
-          }
-        ]
-      }
-    ];
-
-    // 温泉津温泉の推奨される中心座標
+    // 温泉津温泉の推奨される中心座標 (initMapとupdateMapMarkersで一貫して使用)
     const defaultCenter = { lat: 35.0963915628715, lng: 132.34470995757528 };
+    const defaultZoom = 16; // 基本のズームレベル
+    const singleMarkerZoom = 17; // 単一マーカー表示時のズームレベル
 
     // カテゴリー別にアイコン色を定義
     const categoryColors = {
@@ -478,42 +199,82 @@
       "泊まる": "orange"
     };
 
+    // Google Maps APIのロードを待つ
     window.onload = function () {
+      console.log("🔄 Google Maps API ロード待機中...");
       let checkGoogleMaps = setInterval(() => {
         if (typeof google !== "undefined" && typeof google.maps !== "undefined") {
           clearInterval(checkGoogleMaps);
+          console.log("✅ Google Maps API ロード完了。initMap() 開始。");
           initMap();
         }
-      }, 500);
+      }, 200); // チェック間隔を短くして素早く起動
     };
 
     function initMap() {
-      map = new google.maps.Map(document.getElementById("map"), {
-        center: defaultCenter,
-        zoom: 16,
-        styles: mapStyles
+      const mapElement = document.getElementById("map");
+      if (!mapElement) {
+          console.error("❌ マップ要素 (#map) がHTMLに見つかりません。");
+          return;
+      }
+
+      map = new google.maps.Map(mapElement, {
+        center: defaultCenter, // 常にデフォルトの中心に設定
+        zoom: defaultZoom,     // 常にデフォルトのズームに設定
+        styles: mapStyles,
+        disableDefaultUI: false, // デフォルトUIは表示（ズームコントロールなど）
+        mapTypeControl: false,  // マップタイプコントロールを非表示
+        streetViewControl: false, // ストリートビューコントロールを非表示
+        fullscreenControl: false // フルスクリーンコントロールを非表示
       });
 
-      document.getElementById("searchBox").addEventListener("input", filterMarkers);
-
+      // 検索ボックスのイベントリスナーを設定
+      const searchBox = document.getElementById("searchBox");
+      if (searchBox) {
+          searchBox.addEventListener("input", filterMarkers);
+          console.log("✅ 検索ボックスイベントリスナー設定完了。");
+      } else {
+          console.warn("⚠️ 検索ボックス (#searchBox) が見つかりません。");
+      }
+      
       fetchSpreadsheetData();
     }
 
     function fetchSpreadsheetData() {
+      // **重要: Google Sheets APIキーのセキュリティについて**
+      // このAPIキーは公開されており、スプレッドシートの読み取り権限を持っています。
+      // 本番環境で使用する際は、悪用を防ぐため以下を強く推奨します:
+      // 1. Google Cloud PlatformでAPIキーにHTTPリファラー制限を設定する (あなたのドメインのみ許可)
+      // 2. サーバーサイドでAPIリクエストを処理し、クライアントサイドにAPIキーを公開しない
       const sheetApiUrl =
         "https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/シート1?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk";
 
+      console.log("🔄 スプレッドシートデータ取得中:", sheetApiUrl);
+
       fetch(sheetApiUrl)
         .then((response) => {
-          if (!response.ok) throw new Error(`HTTPエラー: ${response.status}`);
+          if (!response.ok) {
+            // HTTPエラーの詳細をログ出力
+            return response.text().then(text => { throw new Error(`HTTPエラー ${response.status}: ${text}`); });
+          }
           return response.json();
         })
         .then((data) => processData(data))
-        .catch((error) => console.error("❌ データ取得エラー:", error));
+        .catch((error) => console.error("❌ データ取得エラー:", error.message));
     }
 
     function processData(data) {
+      if (!data || !data.values || data.values.length < 1) {
+          console.error("❌ スプレッドシートデータが空または不正な形式です。", data);
+          allFacilities = []; // データがない場合も空配列で初期化
+          updateMapMarkers([]); // マーカーをクリア
+          return;
+      }
+
       const headers = data.values[0].map(h => h.trim());
+      console.log("🔍 スプレッドシートヘッダー:", headers);
+
+      // データ行がヘッダー行しかない場合も考慮
       const facilities = data.values.slice(1).map(row => {
         let obj = {};
         headers.forEach((h, i) => {
@@ -521,98 +282,138 @@
         });
         return obj;
       });
-      allFacilities = facilities;
-      updateMapMarkers(facilities);
+      allFacilities = facilities; // 全施設データを保存
+      console.log(`✅ スプレッドシートから ${allFacilities.length} 件の施設データを処理しました。`);
+      updateMapMarkers(allFacilities); // 初期表示は全件表示
     }
 
+    // GoogleマップのドットアイコンURLは非推奨になる可能性があります。
+    // 将来的にはカスタムアイコンの使用を推奨します。
     function getIconUrl(category) {
-      const color = categoryColors[category] || "gray";
+      const color = categoryColors[category] || "grey"; // 未定義カテゴリーは灰色
       return `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`;
     }
 
-    function updateMapMarkers(facilities) {
+    function updateMapMarkers(facilitiesToDisplay) {
+      console.log(`🔄 マーカーの更新: ${facilitiesToDisplay.length} 件表示`);
+
+      // 既存のマーカーを全てクリア
       markers.forEach(marker => marker.setMap(null));
       markers = [];
 
-      bounds = new google.maps.LatLngBounds();
-      if (infoWindow) infoWindow.close();
+      // 開いているインフォウィンドウを閉じる
+      if (infoWindow) {
+        infoWindow.close();
+        infoWindow = null; // 参照をクリア
+      }
 
-      facilities.forEach(facility => {
+      // 新しいマーカーを追加
+      facilitiesToDisplay.forEach(facility => {
         const lat = parseFloat(facility["緯度"]);
         const lng = parseFloat(facility["経度"]);
         const name = facility["場所"] || "名称不明";
         const category = facility["カテゴリー"] || "その他";
 
         if (isNaN(lat) || isNaN(lng)) {
-          console.warn(`緯度または経度が無効です: ${name}, Lat: ${facility["緯度"]}, Lng: ${facility["経度"]}`);
+          console.warn(`⚠️ 緯度または経度が無効です。マーカーが作成されません: ${name}, 緯度: ${facility["緯度"]}, 経度: ${facility["経度"]}`);
           return;
         }
 
         const position = new google.maps.LatLng(lat, lng);
         const marker = new google.maps.Marker({
-          position,
-          map,
+          position: position,
+          map: map,
           title: name,
           icon: {
             url: getIconUrl(category),
+            scaledSize: new google.maps.Size(32, 32) // アイコンサイズを調整
           },
           label: {
             text: name.length > 15 ? name.slice(0, 15) + "…" : name,
             color: "#000",
-            fontSize: "8px",
+            fontSize: "12px", // ラベルのフォントサイズを大きく
             fontWeight: "bold",
-          }
+          },
+          animation: google.maps.Animation.DROP // マーカーがドロップするアニメーション
         });
 
+        // インフォウィンドウのHTMLコンテンツを作成
+        let infoHtml = `
+          <div class="info-window">
+            <h3>${name}</h3>
+            <p><strong>カテゴリ:</strong> ${category}</p>
+            <p><strong>定休日:</strong> ${facility["定休日"] || "なし"}</p>
+            <p><strong>営業時間:</strong> ${facility["営業時間"] || "不明"}</p>
+            <p><strong>電話番号:</strong> ${facility["電話番号"] || "なし"}</p>
+            ${facility["HP"] ? `<p><a href="${facility["HP"]}" target="_blank" rel="noopener noreferrer">ホームページを見る</a></p>` : ''}
+            <p><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(facility["場所"] + " " + facility["住所"])}" target="_blank" rel="noopener noreferrer">Googleマップで詳細を見る</a></p>
+          </div>
+        `;
+
+        // マーカークリックでインフォウィンドウを開く
         marker.addListener("click", () => {
-          if (infoWindow) infoWindow.close();
-
-          let html = `<div style="max-width:300px;"><h2>${name}</h2>`;
-          html += `<p><strong>カテゴリ:</strong> ${category}</p>`;
-          html += `<p><strong>定休日:</strong> ${facility["定休日"] || "なし"}</p>`;
-          html += `<p><strong>営業時間:</strong> ${facility["営業時間"] || "不明"}</p>`;
-          html += `<p><strong>電話番号:</strong> ${facility["電話番号"] || "なし"}</p>`;
-          if (facility["HP"]) {
-            html += `<p><a href="${facility["HP"]}" target="_blank" rel="noopener noreferrer">ホームページを見る</a></p>`;
+          if (infoWindow) {
+            infoWindow.close();
           }
-          html += `</div>`;
-
-          infoWindow = new google.maps.InfoWindow({ content: html });
+          infoWindow = new google.maps.InfoWindow({ content: infoHtml });
           infoWindow.open(map, marker);
+          console.log(`💬 インフォウィンドウ表示: ${name}`);
         });
 
         markers.push(marker);
       });
 
-      map.setCenter(defaultCenter);
-      map.setZoom(16);
-
-      if (markers.length === 1) {
-          map.setCenter(markers[0].getPosition());
-          map.setZoom(17);
-      } else if (markers.length === 0) {
+      // マーカーがロードされた後も、マップの中心とズームレベルを固定する
+      // fitBoundsは使わないことで、意図しない中心のずれを防ぐ
+      if (facilitiesToDisplay.length > 0) {
+          // マーカーが1つの場合は、そのマーカーを中心に少し詳細にズーム
+          if (facilitiesToDisplay.length === 1) {
+              map.setCenter(markers[0].getPosition());
+              map.setZoom(singleMarkerZoom); // 単一マーカーに最適なズーム
+              console.log(`🗺️ 1つのマーカーを中心にズーム設定 (Zoom: ${singleMarkerZoom})`);
+          } else {
+              // 複数のマーカーがある場合は、デフォルトの中心とズームに設定
+              map.setCenter(defaultCenter);
+              map.setZoom(defaultZoom);
+              console.log(`🗺️ 複数マーカー。デフォルトの中心に設定 (Zoom: ${defaultZoom})`);
+          }
+      } else {
+          // マーカーがない場合（検索結果が0件など）はデフォルトの場所にズーム
           map.setCenter(defaultCenter);
-          map.setZoom(16);
+          map.setZoom(defaultZoom);
+          console.log(`🗺️ マーカーなし。デフォルトの中心に設定 (Zoom: ${defaultZoom})`);
       }
     }
 
     function filterMarkers() {
-      const keyword = document.getElementById("searchBox").value.toLowerCase();
+      const keyword = document.getElementById("searchBox").value.toLowerCase().trim();
+      console.log(`🔍 検索キーワード: "${keyword}"`);
 
-      const filtered = allFacilities.filter(facility => {
-        const place = facility["場所"] ? facility["場所"].toLowerCase() : "";
-        const category = facility["カテゴリー"] ? facility["カテゴリー"].toLowerCase() : "";
+      let filteredFacilities = [];
+      if (keyword === "") {
+          // キーワードが空の場合は全ての施設を表示
+          filteredFacilities = allFacilities;
+          console.log("🗑️ 検索キーワードが空のため、全施設を表示します。");
+      } else {
+          // キーワードに基づいてフィルタリング
+          filteredFacilities = allFacilities.filter(facility => {
+            const place = facility["場所"] ? facility["場所"].toLowerCase() : "";
+            const category = facility["カテゴリー"] ? facility["カテゴリー"].toLowerCase() : "";
+            const address = facility["住所"] ? facility["住所"].toLowerCase() : "";
+            const description = facility["説明"] ? facility["説明"].toLowerCase() : "";
 
-        return (
-          place.includes(keyword) ||
-          category.includes(keyword)
-        );
-      });
-
-      updateMapMarkers(filtered);
+            return (
+              place.includes(keyword) ||
+              category.includes(keyword) ||
+              address.includes(keyword) ||
+              description.includes(keyword)
+            );
+          });
+          console.log(`✅ フィルター結果: ${filteredFacilities.length} 件`);
+      }
+      
+      updateMapMarkers(filteredFacilities);
     }
   </script>
-</body>
-</html>
 </body>
 </html>
