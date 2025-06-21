@@ -56,12 +56,12 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       box-sizing: border-box;
       background-color: #fff;
-      appearance: none; /* ドロップダウンのデフォルトスタイルをリセット */
-      background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-6.5%200-12.3%203.2-16.1%208.1-3.9%204.9-5.1%2011.6-3.1%2017.9L139.3%20280.8a17.6%2017.6%200%200%200%2029.4%200L300.2%2090.9c2-6.3.9-13-3-17.9z%22%2F%3E%3C%2Fsvg%3E'); /* ドロップダウン矢印のアイコン */
+      appearance: none;
+      background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-6.5%200-12.3%203.2-16.1%208.1-3.9%204.9-5.1%2011.6-3.1%2017.9L139.3%20280.8a17.6%2017.6%200%200%200%2029.4%200L300.2%2090.9c2-6.3.9-13-3-17.9z%22%2F%3E%3C%2Fsvg%3E');
       background-repeat: no-repeat;
       background-position: right 10px center;
       background-size: 12px;
-      padding-right: 30px; /* 矢印アイコンのスペース確保 */
+      padding-right: 30px;
       cursor: pointer;
     }
 
@@ -143,7 +143,7 @@
         padding: 10px 12px;
       }
       #map {
-        height: calc(100vh - (20px + 8px + 20px + 10px + 10px + 10px*2 + 1px*2 + 20px));
+        height: calc(100vh - (80px + 1.8em + 1em + 10px*2 + 1px*2 + 20px));
         min-height: 350px;
       }
       .gm-style-iw h2 {
@@ -171,7 +171,7 @@
         padding: 8px 10px;
       }
       #map {
-        height: calc(100vh - (15px + 8px + 15px + 10px + 8px + 8px*2 + 1px*2 + 15px));
+        height: calc(100vh - (60px + 1.6em + 0.95em + 8px*2 + 1px*2 + 15px));
         min-height: 280px;
       }
       .gm-style-iw h2 {
@@ -194,7 +194,7 @@
     <input type="text" id="searchBox" placeholder="店舗名やキーワードで検索" />
     <select id="categoryFilter">
       <option value="">全てのカテゴリー</option>
-      </select>
+    </select>
   </div>
 
   <div id="map"></div>
@@ -659,7 +659,7 @@
 
           let displayableText = text.substring(0, totalMaxChars);
           if (text.length > totalMaxChars) {
-              displayableText = text.substring(0, totalMaxChars - 1) + '…'; 
+              displayableText = displayableText.substring(0, totalMaxChars - 1) + '…'; 
               if (displayableText.length > totalMaxChars) {
                  displayableText = displayableText.substring(0, totalMaxChars - 1) + '…';
               }
@@ -690,8 +690,21 @@
         const iconWidth = 32;
         const iconHeight = 32;
         
-        const labelOriginX = iconWidth / 2; // アイコンの水平中央にラベルの左端を合わせる
-        const labelOriginY = iconHeight + 5; // アイコンの底から5px下にずらす
+        // ラベルのX座標: ラベルの幅の半分だけ左にずらして、ラベル全体がアイコンの中心に来るようにする
+        // ラベルのフォントサイズ10pxで5文字の幅はおおよそ50pxと仮定
+        const estimatedLabelWidth = 50; 
+        const labelOriginX = iconWidth / 2 - (estimatedLabelWidth / 2);
+
+        // ラベルのY座標: アイコンの上部 (Y=0) から、ラベルが下にずれて表示されるように調整。
+        // アイコンの上部に表示したいので、Y座標はアイコンの高さ (iconHeight) よりも小さい負の値。
+        // ラベル自体が2行になると高さが出るので、その半分をアイコンの中心(16)から上にずらす。
+        // labelOriginのYはラベルの左上隅のY座標。
+        // アイコンの Y=0 はアイコン画像の一番上。
+        // ラベルをアイコンの上（画像の中央より上）に表示したい場合
+        // 例：-10px はアイコン画像の一番上から上に10pxずれる
+        // ラベルが2行で高さ24pxとすると、中央に合わせるには高さの半分12pxを上にずらす
+        const estimatedLabelHeight = 24; // 2行のラベルのおおよその高さ
+        const labelOriginY = -estimatedLabelHeight / 2 - 5; // ラベルの上部をアイコンの上端から上に5pxずらす
 
         const marker = new google.maps.Marker({
           position: position,
@@ -728,7 +741,7 @@
             <p><strong>営業時間:</strong> ${facility["営業時間"] || "不明"}</p>
             <p><strong>電話番号:</strong> ${facility["電話番号"] || "なし"}</p>
             ${facility["HP"] ? `<p><a href="${facility["HP"]}" target="_blank" rel="noopener noreferrer">ホームページを見る</a></p>` : ''}
-            <p><a href="https://developers.google.com/maps/documentation/maps-static/cloud-customization/zoom-levels-leg?hl=ja0{encodeURIComponent(name + " " + facility["住所"])}" target="_blank" rel="noopener noreferrer">Googleマップで詳細を見る</a></p>
+            <p><a href="https://developers.google.com/maps/documentation/maps-static/cloud-customization/zoom-levels-leg?hl=ja2{encodeURIComponent(name + " " + facility["住所"])}" target="_blank" rel="noopener noreferrer">Googleマップで詳細を見る</a></p>
           </div>
         `;
 
