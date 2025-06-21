@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>温泉津温泉 店舗マップ</title>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAE5sybi3eDWilyCfnTjto8iKzOezd9ivA&libraries=places" async defer></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=【あなたのGoogleMapsAPIキー】&libraries=places" async defer></script>
   <style>
     #map {
       width: 100%;
@@ -11,14 +11,19 @@
       min-height: 500px;
       background-color: #e0e0e0;
     }
-    .info-window a {
-      word-break: break-word;
+    #searchBox {
+      margin: 10px 0;
+      padding: 8px;
+      font-size: 16px;
+      width: 100%;
+      max-width: 400px;
     }
   </style>
 </head>
 <body>
   <h2>温泉津温泉 一覧マップ</h2>
   <p>温泉津温泉の宿泊、飲食、お土産屋さんをまとめました。リンクをクリックして詳細をご覧ください。</p>
+  <input type="text" id="searchBox" placeholder="店舗名やカテゴリで検索" />
   <div id="map"></div>
 
   <script>
@@ -26,6 +31,17 @@
     let markers = [];
     let bounds;
     let infoWindow;
+    let allFacilities = [];
+
+    // カテゴリー別にアイコン色を定義
+    const categoryColors = {
+      "温泉・ケア": "red",
+      "買う": "blue",
+      "見る": "green",
+      "食べる": "purple",
+      "遊ぶ・体験": "yellow",
+      "泊まる": "orange"
+    };
 
     window.onload = function () {
       let checkGoogleMaps = setInterval(() => {
@@ -37,114 +53,120 @@
     };
 
     function initMap() {
-      const mapElement = document.getElementById("map");
-      if (!mapElement) {
-        console.error("#map が見つかりません。");
-        return;
-      }
-
-      map = new google.maps.Map(mapElement, {
+      map = new google.maps.Map(document.getElementById("map"), {
         center: { lat: 34.144389, lng: 131.429866 },
         zoom: 14,
       });
+
+      document.getElementById("searchBox").addEventListener("input", filterMarkers);
 
       fetchSpreadsheetData();
     }
 
     function fetchSpreadsheetData() {
       const sheetApiUrl =
-        "https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/%E3%82%B7%E3%83%BC%E3%83%881?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk";
+        "https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/シート1?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk";
 
       fetch(sheetApiUrl)
         .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTPエラー: ${response.status}`);
-          }
+          if (!response.ok) throw new Error(`HTTPエラー: ${response.status}`);
           return response.json();
         })
         .then((data) => processData(data))
-        .catch((error) =>
-          console.error("❌ データ取得エラー:", error.message)
-        );
+        .catch((error) => console.error("❌ データ取得エラー:", error));
     }
 
     function processData(data) {
-      if (
-        !data ||
-        !data.values ||
-        !Array.isArray(data.values) ||
-        data.values.length < 2
-      ) {
-        console.error("データが不正または空です", data);
-        return;
-      }
-
-      const headers = data.values[0].map((header) => header.trim());
-      const facilities = data.values.slice(1).map((row) => {
+      const headers = data.values[0].map(h => h.trim());
+      const facilities = data.values.slice(1).map(row => {
         let obj = {};
-        headers.forEach((header, index) => {
-          obj[header] = row[index] || "";
+        headers.forEach((h, i) => {
+          obj[h] = row[i] || "";
         });
         return obj;
       });
-
+      allFacilities = facilities;
       updateMapMarkers(facilities);
     }
 
+    function getIconUrl(category) {
+      const color = categoryColors[category] || "gray";
+      return `https://maps.google.com/mapfiles/ms/icons/${color}-dot.png`;
+    }
+
     function updateMapMarkers(facilities) {
-      markers.forEach((marker) => marker.setMap(null));
+      // 既存のマーカーを削除
+      markers.forEach(m => m.setMap(null));
       markers = [];
       bounds = new google.maps.LatLngBounds();
+      if (infoWindow) infoWindow.close();
 
-      if (infoWindow) {
-        infoWindow.close();
-      }
-
-      let markerCount = 0;
-
-      facilities.forEach((facility) => {
-        if (!facility["緯度"] || !facility["経度"]) return;
-
+      facilities.forEach(facility => {
         const lat = parseFloat(facility["緯度"]);
         const lng = parseFloat(facility["経度"]);
+        const name = facility["場所"] || "名称不明";
+        const category = facility["カテゴリー"] || "その他";
+
         if (isNaN(lat) || isNaN(lng)) return;
 
         const position = new google.maps.LatLng(lat, lng);
         const marker = new google.maps.Marker({
-          position: position,
-          map: map,
-          title: facility["場所"] || "不明",
+          position,
+          map,
+          title: name,
+          icon: {
+            url: getIconUrl(category),
+          },
+          label: {
+            text: name.length > 10 ? name.slice(0, 10) + "…" : name,
+            color: "#000",
+            fontSize: "12px",
+            fontWeight: "bold",
+          }
+        });
+
+        marker.addListener("click", () => {
+          if (infoWindow) infoWindow.close();
+
+          let html = `<div style="max-width:300px;"><h2>${name}</h2>`;
+          html += `<p><strong>カテゴリ:</strong> ${category}</p>`;
+          html += `<p><strong>定休日:</strong> ${facility["定休日"] || "なし"}</p>`;
+          html += `<p><strong>営業時間:</strong> ${facility["営業時間"] || "不明"}</p>`;
+          html += `<p><strong>電話番号:</strong> ${facility["電話番号"] || "なし"}</p>`;
+          if (facility["HP"]) {
+            html += `<p><a href="${facility["HP"]}" target="_blank" rel="noopener noreferrer">ホームページを見る</a></p>`;
+          }
+          html += `</div>`;
+
+          infoWindow = new google.maps.InfoWindow({ content: html });
+          infoWindow.open(map, marker);
         });
 
         markers.push(marker);
         bounds.extend(position);
-        markerCount++;
-
-        marker.addListener("click", function () {
-          if (infoWindow) infoWindow.close();
-
-
-          let contentHtml = '<div class="info-window" style="max-width: 300px;">';
-          contentHtml += `<h2>${facility["場所"] || "情報なし"}</h2>`;
-          contentHtml += `<p><strong>定休日:</strong> ${facility["定休日"] || "情報なし"}</p>`;
-          contentHtml += `<p><strong>営業時間:</strong> ${facility["営業時間"] || "情報なし"}</p>`;
-          contentHtml += `<p><strong>電話番号:</strong> ${facility["電話番号"] || "情報なし"}</p>`;
-          if (facility["HP"]) {
-            contentHtml += `<p><a href="${facility["HP"]}" target="_blank">ホームページを見る</a></p>`;
-          }
-          contentHtml += '</div>';
-
-          infoWindow = new google.maps.InfoWindow({
-            content: contentHtml
-          });
-
-          infoWindow.open(map, marker);
-        });
       });
 
-      if (markerCount > 0) {
+      if (markers.length > 0) {
         map.fitBounds(bounds);
       }
+    }
+
+    function filterMarkers() {
+      const keyword = document.getElementById("searchBox").value.toLowerCase();
+
+      const filtered = allFacilities.filter(facility => {
+        return (
+          (facility["場所"] && facility["場所"].toLowerCase().includes(keyword)) ||
+          (facility["カテゴリー"] && facility["カテゴリー"].toLowerCase().includes(keyword))
+        );
+      });
+
+      updateMapMarkers(filtered);
+    }
+  </script>
+</body>
+</html>
+
     }
   </script>
 </body>
