@@ -537,8 +537,7 @@
         // マーカーがない場合（検索結果が0件など）はデフォルトの場所にズーム
         map.setCenter(defaultCenter);
         map.setZoom(15);
-      }
-    } // <-- updateMapMarkers 関数の正しい閉じ括弧
+      } 
 
     function filterMarkers() {
       const keyword = document.getElementById("searchBox").value.toLowerCase();
