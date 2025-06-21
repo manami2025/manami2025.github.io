@@ -1,1112 +1,560 @@
 <!DOCTYPE html>
-
 <html lang="ja">
-
 <head>
-
-  <meta charset="UTF-8" />
-
-  <title>温泉津温泉 店舗マップ</title>
-
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk&libraries=places" async defer></script>
-
-  <style>
-
-    html, body {
-
-      height: 100%;
-
-      margin: 0;
-
-      padding: 0;
-
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-
-    }
-
-    #map {
-
-      height: 600px;
-
-      width: 100%;
-
-      border: 1px solid #ddd;
-
-      border-radius: 8px;
-
-      margin-top: 20px;
-
-    }
-
-    h2 {
-
-      color: #333;
-
-      text-align: center;
-
-      margin-top: 20px;
-
-    }
-
-    p {
-
-      text-align: center;
-
-      color: #555;
-
-    }
-
-    #searchBox {
-
-      display: block;
-
-      width: 80%;
-
-      max-width: 400px;
-
-      margin: 20px auto;
-
-      padding: 10px;
-
-      border: 1px solid #ccc;
-
-      border-radius: 5px;
-
-      font-size: 16px;
-
-    }
-
-    .gm-style-iw { /* InfoWindowのスタイル調整 */
-
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-
-    }
-
-    .gm-style-iw h2 {
-
-      font-size: 1.2em;
-
-      margin-bottom: 5px;
-
-      color: #333;
-
-      text-align: left; /* InfoWindow内のH2は左寄せに */
-
-    }
-
-    .gm-style-iw p {
-
-      font-size: 0.9em;
-
-      margin-bottom: 3px;
-
-      color: #666;
-
-      text-align: left; /* InfoWindow内のPは左寄せに */
-
-    }
-
-    .gm-style-iw a {
-
-      color: #007bff;
-
-      text-decoration: none;
-
-    }
-
-    .gm-style-iw a:hover {
-
-      text-decoration: underline;
-
-    }
-
-  </style>
-
+  <meta charset="UTF-8" />
+  <title>温泉津温泉 店舗マップ</title>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk&libraries=places" async defer></script>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    #map {
+      height: 600px;
+      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+    h2 {
+      color: #333;
+      text-align: center;
+      margin-top: 20px;
+    }
+    p {
+      text-align: center;
+      color: #555;
+    }
+    #searchBox {
+      display: block;
+      width: 80%;
+      max-width: 400px;
+      margin: 20px auto;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    .gm-style-iw { /* InfoWindowのスタイル調整 */
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .gm-style-iw h2 {
+      font-size: 1.2em;
+      margin-bottom: 5px;
+      color: #333;
+      text-align: left; /* InfoWindow内のH2は左寄せに */
+    }
+    .gm-style-iw p {
+      font-size: 0.9em;
+      margin-bottom: 3px;
+      color: #666;
+      text-align: left; /* InfoWindow内のPは左寄せに */
+    }
+    .gm-style-iw a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    .gm-style-iw a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
-
 <body>
-
-  <h2>温泉津温泉 一覧マップ</h2>
-
-  <p>温泉津温泉の宿泊、飲食、お土産屋さんをまとめました。リンクをクリックして詳細をご覧ください。</p>
-
-  <input type="text" id="searchBox" placeholder="店舗名やカテゴリで検索" />
-
-  <div id="map"></div>
-
-
-
-  <script>
-
-    let map;
-
-    let markers = [];
-
-    let bounds;
-
-    let infoWindow;
-
-    let allFacilities = [];
-
-
-
-    const mapStyles = [
-
-      {
-
-        "elementType": "geometry",
-
-        "stylers": [
-
-          {
-
-            "color": "#ebe3cd"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "elementType": "labels.text.fill",
-
-        "stylers": [
-
-          {
-
-            "color": "#523735"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "elementType": "labels.text.stroke",
-
-        "stylers": [
-
-          {
-
-            "color": "#f5f1e6"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "administrative",
-
-        "elementType": "geometry",
-
-        "stylers": [
-
-          {
-
-            "visibility": "off"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "administrative",
-
-        "elementType": "geometry.stroke",
-
-        "stylers": [
-
-          {
-
-            "color": "#c9b2a6"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "administrative.land_parcel",
-
-        "elementType": "geometry.stroke",
-
-        "stylers": [
-
-          {
-
-            "color": "#dcd2be"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "administrative.land_parcel",
-
-        "elementType": "labels.text.fill",
-
-        "stylers": [
-
-          {
-
-            "color": "#ae9e90"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "landscape.natural",
-
-        "elementType": "geometry",
-
-        "stylers": [
-
-          {
-
-            "color": "#dfd2ae"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "poi",
-
-        "stylers": [
-
-          {
-
-            "visibility": "off"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "poi",
-
-        "elementType": "geometry",
-
-        "stylers": [
-
-          {
-
-            "color": "#dfd2ae"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "poi",
-
-        "elementType": "labels.text.fill",
-
-        "stylers": [
-
-          {
-
-            "color": "#93817c"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "poi.park",
-
-        "elementType": "geometry.fill",
-
-        "stylers": [
-
-          {
-
-            "color": "#a5b076"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "poi.park",
-
-        "elementType": "labels.text.fill",
-
-        "stylers": [
-
-          {
-
-            "color": "#447530"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "road",
-
-        "elementType": "geometry",
-
-        "stylers": [
-
-          {
-
-            "color": "#f5f1e6"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "road",
-
-        "elementType": "labels.icon",
-
-        "stylers": [
-
-          {
-
-            "visibility": "off"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "road.arterial",
-
-        "elementType": "geometry",
-
-        "stylers": [
-
-          {
-
-            "color": "#fdfcf8"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "road.highway",
-
-        "elementType": "geometry",
-
-        "stylers": [
-
-          {
-
-            "color": "#f8c967"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "road.highway",
-
-        "elementType": "geometry.stroke",
-
-        "stylers": [
-
-          {
-
-            "color": "#e9bc62"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "road.highway.controlled_access",
-
-        "elementType": "geometry",
-
-        "stylers": [
-
-          {
-
-            "color": "#e98d58"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "road.highway.controlled_access",
-
-        "elementType": "geometry.stroke",
-
-        "stylers": [
-
-          {
-
-            "color": "#db8555"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "road.local",
-
-        "elementType": "labels.text.fill",
-
-        "stylers": [
-
-          {
-
-            "color": "#806b63"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "transit",
-
-        "stylers": [
-
-          {
-
-            "visibility": "off"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "transit.line",
-
-        "elementType": "geometry",
-
-        "stylers": [
-
-          {
-
-            "color": "#dfd2ae"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "transit.line",
-
-        "elementType": "labels.text.fill",
-
-        "stylers": [
-
-          {
-
-            "color": "#8f7d77"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "transit.line",
-
-        "elementType": "labels.text.stroke",
-
-        "stylers": [
-
-          {
-
-            "color": "#ebe3cd"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "transit.station",
-
-        "elementType": "geometry",
-
-        "stylers": [
-
-          {
-
-            "color": "#dfd2ae"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "transit.station.rail",
-
-        "elementType": "geometry",
-
-        "stylers": [
-
-          {
-
-            "visibility": "on"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "transit.station.rail",
-
-        "elementType": "geometry.fill",
-
-        "stylers": [
-
-          {
-
-            "visibility": "simplified"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "transit.station.rail",
-
-        "elementType": "geometry.stroke",
-
-        "stylers": [
-
-          {
-
-            "visibility": "simplified"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "transit.station.rail",
-
-        "elementType": "labels.icon",
-
-        "stylers": [
-
-          {
-
-            "visibility": "simplified"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "transit.station.rail",
-
-        "elementType": "labels.text",
-
-        "stylers": [
-
-          {
-
-            "visibility": "simplified"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "transit.station.rail",
-
-        "elementType": "labels.text.fill",
-
-        "stylers": [
-
-          {
-
-            "visibility": "simplified"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "water",
-
-        "elementType": "geometry.fill",
-
-        "stylers": [
-
-          {
-
-            "color": "#b9d3c2"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "water",
-
-        "elementType": "labels.text",
-
-        "stylers": [
-
-          {
-
-            "visibility": "simplified"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "water",
-
-        "elementType": "labels.text.fill",
-
-        "stylers": [
-
-          {
-
-            "color": "#92998d"
-
-          }
-
-        ]
-
-      },
-
-      {
-
-        "featureType": "water",
-
-        "elementType": "labels.text.stroke",
-
-        "stylers": [
-
-          {
-
-            "visibility": "simplified"
-
-          }
-
-        ]
-
-      }
-
-    ];
-
-
-
-    const defaultCenter = { lat: 35.09647639047312, lng: 132.3470713278045 };
-
-
-
-    // カテゴリー別にアイコン色を定義
-
-    const categoryColors = {
-
-      "温泉・ケア": "red",
-
-      "買う": "blue",
-
-      "見る": "green",
-
-      "食べる": "purple",
-
-      "遊ぶ・体験": "yellow",
-
-      "泊まる": "orange"
-
-    };
-
-
-
-    window.onload = function () {
-
-      let checkGoogleMaps = setInterval(() => {
-
-        if (typeof google !== "undefined" && typeof google.maps !== "undefined") {
-
-          clearInterval(checkGoogleMaps);
-
-          initMap();
-
-        }
-
-      }, 500);
-
-    };
-
-
-
-    function initMap() {
-
-      map = new google.maps.Map(document.getElementById("map"), {
-
-        center: { lat: 35.09681291454417, lng: 132.34350832796386 },
-
-        zoom: 16,
-
-        styles: mapStyles
-
-      });
-
-
-
-      document.getElementById("searchBox").addEventListener("input", filterMarkers);
-
-
-
-      fetchSpreadsheetData();
-
-    }
-
-
-
-    function fetchSpreadsheetData() {
-
-      const sheetApiUrl =
-
-        "https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/シート1?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk";
-
-
-
-      fetch(sheetApiUrl)
-
-        .then((response) => {
-
-          if (!response.ok) throw new Error(`HTTPエラー: ${response.status}`);
-
-          return response.json();
-
-        })
-
-        .then((data) => processData(data))
-
-        .catch((error) => console.error("❌ データ取得エラー:", error));
-
-    }
-
-
-
-    function processData(data) {
-
-      const headers = data.values[0].map(h => h.trim());
-
-      const facilities = data.values.slice(1).map(row => {
-
-        let obj = {};
-
-        headers.forEach((h, i) => {
-
-          obj[h] = row[i] || "";
-
-        });
-
-        return obj;
-
-      });
-
-      allFacilities = facilities;
-
-      updateMapMarkers(facilities);
-
-    }
-
-
-
-    function getIconUrl(category) {
-
-      const color = categoryColors[category] || "gray";
-
-      return `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`;
-
-    }
-
-
-
-    function updateMapMarkers(facilities) {
-
-      // **既存のマーカーを全てクリア** (検索時など、マーカーを再描画する際に重要)
-
-      markers.forEach(marker => marker.setMap(null));
-
-      markers = []; // マーカー配列も空にする
-
-
-
-      bounds = new google.maps.LatLngBounds();
-
-      if (infoWindow) infoWindow.close();
-
-
-
-      facilities.forEach(facility => {
-
-        const lat = parseFloat(facility["緯度"]);
-
-        const lng = parseFloat(facility["経度"]);
-
-        const name = facility["場所"] || "名称不明";
-
-        const category = facility["カテゴリー"] || "その他";
-
-
-
-        if (isNaN(lat) || isNaN(lng)) {
-
-          console.warn(`緯度または経度が無効です: ${name}, Lat: ${facility["緯度"]}, Lng: ${facility["経度"]}`);
-
-          return;
-
-        }
-
-
-
-        const position = new google.maps.LatLng(lat, lng);
-
-        const marker = new google.maps.Marker({
-
-          position,
-
-          map,
-
-          title: name,
-
-          icon: {
-
-            url: getIconUrl(category),
-
-          },
-
-          label: {
-
-            // ラベルの文字数を15文字に調整し、オーバーフロー時に「…」を追加
-
-            text: name.length > 15 ? name.slice(0, 15) + "…" : name,
-
-            color: "#000",
-
-            fontSize: "8px",
-
-            fontWeight: "bold",
-
-          }
-
-        });
-
-
-
-        marker.addListener("click", () => {
-
-          if (infoWindow) infoWindow.close();
-
-
-
-          let html = `<div style="max-width:300px;"><h2>${name}</h2>`;
-
-          html += `<p><strong>カテゴリ:</strong> ${category}</p>`;
-
-          html += `<p><strong>定休日:</strong> ${facility["定休日"] || "なし"}</p>`;
-
-          html += `<p><strong>営業時間:</strong> ${facility["営業時間"] || "不明"}</p>`;
-
-          html += `<p><strong>電話番号:</strong> ${facility["電話番号"] || "なし"}</p>`;
-
-          if (facility["HP"]) {
-
-            html += `<p><a href="${facility["HP"]}" target="_blank" rel="noopener noreferrer">ホームページを見る</a></p>`;
-
-          }
-
-          html += `</div>`;
-
-
-
-          infoWindow = new google.maps.InfoWindow({ content: html });
-
-          infoWindow.open(map, marker);
-
-        });
-
-
-
-        markers.push(marker);
-
-        bounds.extend(position);
-
-      });
-
-
-
-      // マーカーの表示とズームレベルの調整
-
-      if (markers.length > 0) {
-
-        map.fitBounds(bounds); // 全てのマーカーが収まるように地図を調整
-
-
-
-        if (map.getZoom() < 17) {
-
-            map.setZoom(17);
-
-        }
-
-
-
-
-        if (markers.length === 1) {
-
-            map.setCenter(markers[0].getPosition());
-
-            map.setZoom(17); // 単一マーカーに最適なズームレベル
-
-        }
-
-      } else {
-
-        // マーカーがない場合（検索結果が0件など）はデフォルトの場所にズーム
-
-        map.setCenter(defaultCenter);
-
-        map.setZoom(15);
-
-      } 
-
-
-
-    function filterMarkers() {
-
-      const keyword = document.getElementById("searchBox").value.toLowerCase();
-
-
-
-      const filtered = allFacilities.filter(facility => {
-
-
-        const place = facility["場所"] ? facility["場所"].toLowerCase() : "";
-
-        const category = facility["カテゴリー"] ? facility["カテゴリー"].toLowerCase() : "";
-
-
-
-        return (
-
-          place.includes(keyword) ||
-
-          category.includes(keyword)
-
-        );
-
-      });
-
-
-
-      updateMapMarkers(filtered);
-
-    }
-
-  </script>
-
+  <h2>温泉津温泉 一覧マップ</h2>
+  <p>温泉津温泉の宿泊、飲食、お土産屋さんをまとめました。リンクをクリックして詳細をご覧ください。</p>
+  <input type="text" id="searchBox" placeholder="店舗名やカテゴリで検索" />
+  <div id="map"></div>
+
+  <script>
+    let map;
+    let markers = [];
+    let bounds;
+    let infoWindow;
+    let allFacilities = [];
+
+    const mapStyles = [
+      {
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#ebe3cd"
+          }
+        ]
+      },
+      {
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#523735"
+          }
+        ]
+      },
+      {
+        "elementType": "labels.text.stroke",
+        "stylers": [
+          {
+            "color": "#f5f1e6"
+          }
+        ]
+      },
+      {
+        "featureType": "administrative",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "administrative",
+        "elementType": "geometry.stroke",
+        "stylers": [
+          {
+            "color": "#c9b2a6"
+          }
+        ]
+      },
+      {
+        "featureType": "administrative.land_parcel",
+        "elementType": "geometry.stroke",
+        "stylers": [
+          {
+            "color": "#dcd2be"
+          }
+        ]
+      },
+      {
+        "featureType": "administrative.land_parcel",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#ae9e90"
+          }
+        ]
+      },
+      {
+        "featureType": "landscape.natural",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#dfd2ae"
+          }
+        ]
+      },
+      {
+        "featureType": "poi",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "poi",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#dfd2ae"
+          }
+        ]
+      },
+      {
+        "featureType": "poi",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#93817c"
+          }
+        ]
+      },
+      {
+        "featureType": "poi.park",
+        "elementType": "geometry.fill",
+        "stylers": [
+          {
+            "color": "#a5b076"
+          }
+        ]
+      },
+      {
+        "featureType": "poi.park",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#447530"
+          }
+        ]
+      },
+      {
+        "featureType": "road",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#f5f1e6"
+          }
+        ]
+      },
+      {
+        "featureType": "road",
+        "elementType": "labels.icon",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "road.arterial",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#fdfcf8"
+          }
+        ]
+      },
+      {
+        "featureType": "road.highway",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#f8c967"
+          }
+        ]
+      },
+      {
+        "featureType": "road.highway",
+        "elementType": "geometry.stroke",
+        "stylers": [
+          {
+            "color": "#e9bc62"
+          }
+        ]
+      },
+      {
+        "featureType": "road.highway.controlled_access",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#e98d58"
+          }
+        ]
+      },
+      {
+        "featureType": "road.highway.controlled_access",
+        "elementType": "geometry.stroke",
+        "stylers": [
+          {
+            "color": "#db8555"
+          }
+        ]
+      },
+      {
+        "featureType": "road.local",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#806b63"
+          }
+        ]
+      },
+      {
+        "featureType": "transit",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "transit.line",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#dfd2ae"
+          }
+        ]
+      },
+      {
+        "featureType": "transit.line",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#8f7d77"
+          }
+        ]
+      },
+      {
+        "featureType": "transit.line",
+        "elementType": "labels.text.stroke",
+        "stylers": [
+          {
+            "color": "#ebe3cd"
+          }
+        ]
+      },
+      {
+        "featureType": "transit.station",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#dfd2ae"
+          }
+        ]
+      },
+      {
+        "featureType": "transit.station.rail",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "visibility": "on"
+          }
+        ]
+      },
+      {
+        "featureType": "transit.station.rail",
+        "elementType": "geometry.fill",
+        "stylers": [
+          {
+            "visibility": "simplified"
+          }
+        ]
+      },
+      {
+        "featureType": "transit.station.rail",
+        "elementType": "geometry.stroke",
+        "stylers": [
+          {
+            "visibility": "simplified"
+          }
+        ]
+      },
+      {
+        "featureType": "transit.station.rail",
+        "elementType": "labels.icon",
+        "stylers": [
+          {
+            "visibility": "simplified"
+          }
+        ]
+      },
+      {
+        "featureType": "transit.station.rail",
+        "elementType": "labels.text",
+        "stylers": [
+          {
+            "visibility": "simplified"
+          }
+        ]
+      },
+      {
+        "featureType": "transit.station.rail",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "visibility": "simplified"
+          }
+        ]
+      },
+      {
+        "featureType": "water",
+        "elementType": "geometry.fill",
+        "stylers": [
+          {
+            "color": "#b9d3c2"
+          }
+        ]
+      },
+      {
+        "featureType": "water",
+        "elementType": "labels.text",
+        "stylers": [
+          {
+            "visibility": "simplified"
+          }
+        ]
+      },
+      {
+        "featureType": "water",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#92998d"
+          }
+        ]
+      },
+      {
+        "featureType": "water",
+        "elementType": "labels.text.stroke",
+        "stylers": [
+          {
+            "visibility": "simplified"
+          }
+        ]
+      }
+    ];
+
+    const defaultCenter = { lat: 35.09647639047312, lng: 132.3470713278045 };
+
+    // カテゴリー別にアイコン色を定義
+    const categoryColors = {
+      "温泉・ケア": "red",
+      "買う": "blue",
+      "見る": "green",
+      "食べる": "purple",
+      "遊ぶ・体験": "yellow",
+      "泊まる": "orange"
+    };
+
+    window.onload = function () {
+      let checkGoogleMaps = setInterval(() => {
+        if (typeof google !== "undefined" && typeof google.maps !== "undefined") {
+          clearInterval(checkGoogleMaps);
+          initMap();
+        }
+      }, 500);
+    };
+
+    function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat : 35.09681291454417 , lng: 132.34350832796386 },
+        zoom: 16,
+        styles: mapStyles
+      });
+
+      document.getElementById("searchBox").addEventListener("input", filterMarkers);
+
+      fetchSpreadsheetData();
+    }
+
+    function fetchSpreadsheetData() {
+      const sheetApiUrl =
+        "https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/シート1?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk";
+
+      fetch(sheetApiUrl)
+        .then((response) => {
+          if (!response.ok) throw new Error(`HTTPエラー: ${response.status}`);
+          return response.json();
+        })
+        .then((data) => processData(data))
+        .catch((error) => console.error("❌ データ取得エラー:", error));
+    }
+
+    function processData(data) {
+      const headers = data.values[0].map(h => h.trim());
+      const facilities = data.values.slice(1).map(row => {
+        let obj = {};
+        headers.forEach((h, i) => {
+          obj[h] = row[i] || "";
+        });
+        return obj;
+      });
+      allFacilities = facilities;
+      updateMapMarkers(facilities);
+    }
+
+    function getIconUrl(category) {
+      const color = categoryColors[category] || "gray";
+      return `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`;
+    }
+
+    function updateMapMarkers(facilities) {
+      // **既存のマーカーを全てクリア** (検索時など、マーカーを再描画する際に重要)
+      markers.forEach(marker => marker.setMap(null));
+      markers = []; // マーカー配列も空にする
+
+      bounds = new google.maps.LatLngBounds();
+      if (infoWindow) infoWindow.close();
+
+      facilities.forEach(facility => {
+        const lat = parseFloat(facility["緯度"]);
+        const lng = parseFloat(facility["経度"]);
+        const name = facility["場所"] || "名称不明";
+        const category = facility["カテゴリー"] || "その他";
+
+        if (isNaN(lat) || isNaN(lng)) {
+          console.warn(`緯度または経度が無効です: ${name}, Lat: ${facility["緯度"]}, Lng: ${facility["経度"]}`);
+          return;
+        }
+
+        const position = new google.maps.LatLng(lat, lng);
+        const marker = new google.maps.Marker({
+          position,
+          map,
+          title: name,
+          icon: {
+            url: getIconUrl(category),
+          },
+          label: {
+            // ラベルの文字数を15文字に調整し、オーバーフロー時に「…」を追加
+            text: name.length > 15 ? name.slice(0, 15) + "…" : name,
+            color: "#000",
+            fontSize: "8px",
+            fontWeight: "bold",
+          }
+        });
+
+        marker.addListener("click", () => {
+          if (infoWindow) infoWindow.close();
+
+          let html = `<div style="max-width:300px;"><h2>${name}</h2>`;
+          html += `<p><strong>カテゴリ:</strong> ${category}</p>`;
+          html += `<p><strong>定休日:</strong> ${facility["定休日"] || "なし"}</p>`;
+          html += `<p><strong>営業時間:</strong> ${facility["営業時間"] || "不明"}</p>`;
+          html += `<p><strong>電話番号:</strong> ${facility["電話番号"] || "なし"}</p>`;
+          if (facility["HP"]) {
+            html += `<p><a href="${facility["HP"]}" target="_blank" rel="noopener noreferrer">ホームページを見る</a></p>`;
+          }
+          html += `</div>`;
+
+          infoWindow = new google.maps.InfoWindow({ content: html });
+          infoWindow.open(map, marker);
+        });
+
+        markers.push(marker);
+        bounds.extend(position);
+      });
+
+      // マーカーの表示とズームレベルの調整
+      if (markers.length > 0) {
+        map.fitBounds(bounds); // 全てのマーカーが収まるように地図を調整
+
+        // fitBoundsが広範囲にズームアウトした場合に、最低限のズームレベルを保証する
+        // 例: 現在のズームレベルが17より小さかったら、17に設定し直す
+        if (map.getZoom() < 17) {
+            map.setZoom(17);
+        }
+
+        // もしマーカーが1つしかない場合、fitBoundsは非常にワイドなズームになることがあるため、
+        // その場合は中心を設定し直して適切なズームにする
+        if (markers.length === 1) {
+            map.setCenter(markers[0].getPosition());
+            map.setZoom(17); // 単一マーカーに最適なズームレベル
+        }
+      } else {
+        // マーカーがない場合（検索結果が0件など）はデフォルトの場所にズーム
+        map.setCenter(defaultCenter);
+        map.setZoom(15);
+      } 
+
+    function filterMarkers() {
+      const keyword = document.getElementById("searchBox").value.toLowerCase();
+
+      const filtered = allFacilities.filter(facility => {
+        // null/undefined チェックを追加してエラーを回避
+        const place = facility["場所"] ? facility["場所"].toLowerCase() : "";
+        const category = facility["カテゴリー"] ? facility["カテゴリー"].toLowerCase() : "";
+
+        return (
+          place.includes(keyword) ||
+          category.includes(keyword)
+        );
+      });
+
+      updateMapMarkers(filtered);
+    }
+  </script>
 </body>
-
 </html>
-
