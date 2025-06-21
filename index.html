@@ -262,7 +262,8 @@
         "featureType": "administrative.land_parcel",
         "elementType": "labels.text.fill",
         "stylers": [
-          {
+      _BOS_
+        {
             "color": "#ae9e90"
           }
         ]
@@ -414,8 +415,8 @@
         "stylers": [
           {
             "color": "#8f7d77"
-        _BOS_
-      ]
+          }
+        ]
       },
       {
         "featureType": "transit.line",
@@ -487,7 +488,8 @@
           {
             "visibility": "simplified"
           }
-        ]
+      _BOS_
+  ]
       },
       {
         "featureType": "water",
@@ -510,7 +512,8 @@
       {
         "featureType": "water",
         "elementType": "labels.text.fill",
-        "stylers": [
+    _BOS_
+      "stylers": [
           {
             "color": "#92998d"
           }
@@ -576,7 +579,7 @@
       if (categoryFilter) {
           categoryFilter.addEventListener("change", filterMarkers);
       }
-      
+      
       fetchSpreadsheetData();
     }
 
@@ -639,10 +642,8 @@
         });
     }
 
-    // ★★★ 修正点1 ★★★
     function getIconUrl(category) {
       const color = categoryColors[category] || "grey";
-      // テンプレートリテラルの構文を修正し、標準的なアイコンURLに変更
       return `http://maps.google.com/mapfiles/ms/icons/${color}.png`;
     }
 
@@ -669,23 +670,23 @@
           if (!text) return '';
           let formattedText = '';
           const maxCharsPerLine = 5;
-          const totalMaxChars = maxCharsPerLine * 2; 
+          const totalMaxChars = maxCharsPerLine * 2;
 
           let displayableText = text.substring(0, totalMaxChars);
           if (text.length > totalMaxChars) {
-              displayableText = text.substring(0, totalMaxChars - 1) + '…'; 
+              displayableText = text.substring(0, totalMaxChars - 1) + '…';
               if (displayableText.length > totalMaxChars) {
-                 displayableText = displayableText.substring(0, totalMaxChars - 1) + '…';
+                 displayableText = displayableText.substring(0, totalMaxChars - 1) + '…';
               }
           }
-          
+          
           for (let i = 0; i < displayableText.length; i += maxCharsPerLine) {
               formattedText += displayableText.substring(i, i + maxCharsPerLine);
               if (i + maxCharsPerLine < displayableText.length) {
                   formattedText += '\n';
               }
           }
-          
+          
           return formattedText;
       };
 
@@ -700,10 +701,10 @@
         }
 
         const position = new google.maps.LatLng(lat, lng);
-        
+        
         const iconWidth = 32;
         const iconHeight = 32;
-        
+        
         const labelOriginX = iconWidth / 2;
         const labelOriginY = iconHeight - 12;
 
@@ -726,11 +727,9 @@
           animation: google.maps.Animation.DROP
         });
 
-        // ★★★ 修正点2 ★★★
         const searchQuery = encodeURIComponent(facility["場所"] + " " + (facility["住所"] || ''));
-        // Googleマップ検索用の正しいURL形式に修正
         const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
-        
+        
         let infoHtml = `
           <div class="info-window">
             <h3>${name}</h3>
@@ -780,9 +779,9 @@
 
         return keywordMatch && categoryMatch;
       });
-      
+      
       updateMapMarkers(filteredFacilities);
     }
   </script>
 </body>
-</html>
+</html>　できたよ！ありがとう！
