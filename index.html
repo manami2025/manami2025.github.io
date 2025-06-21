@@ -529,7 +529,9 @@
 
     const defaultCenter = { lat: 35.0963915628715, lng: 132.34470995757528 };
     const defaultZoom = 16;
-    const singleMarkerZoom = 19;
+    // singleMarkerZoom はラベル表示と連動しないため、defaultZoomと合わせるか削除できます
+    // 今回は削除します
+    // const singleMarkerZoom = 19; 
 
     const categoryColors = {
       "温泉・ケア": "red",
@@ -566,7 +568,8 @@
         fullscreenControl: false
       });
 
-      map.addListener('zoom_changed', adjustMarkerLabelVisibility);
+      // ズーム変更イベントリスナーは、ラベル表示と連動しないため削除
+      // map.addListener('zoom_changed', adjustMarkerLabelVisibility);
 
       const searchBox = document.getElementById("searchBox");
       if (searchBox) {
@@ -644,20 +647,8 @@
       return `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`;
     }
 
-    function adjustMarkerLabelVisibility() {
-        if (!map || !markers.length) return;
-
-        const currentZoom = map.getZoom();
-        const showLabels = currentZoom >= 19; // ズームレベル19以上で表示
-
-        markers.forEach(marker => {
-            const currentLabel = marker.getLabel();
-            if (currentLabel) {
-                // ラベルが存在する場合のみopacityを変更
-                marker.setOptions({ label: { ...currentLabel, opacity: showLabels ? 1 : 0 } });
-            }
-        });
-    }
+    // ズームレベルに応じてマーカーラベルの表示を調整する機能は削除
+    // function adjustMarkerLabelVisibility() { ... }
 
     function updateMapMarkers(facilitiesToDisplay) {
       markers.forEach(marker => marker.setMap(null));
@@ -720,10 +711,15 @@
             color: "#888",
             fontSize: "10px",
             fontWeight: "bold",
-            opacity: map.getZoom() >= 19 ? 1 : 0, 
+            opacity: 1, // ラベルを常に表示 (opacity: 1)
           },
+          // labelOrigin はデフォルト位置に戻すため削除
           animation: google.maps.Animation.DROP
         });
+
+        // mouseover/mouseout イベントリスナーは削除
+        // marker.addListener("mouseover", ...);
+        // marker.addListener("mouseout", ...);
 
         let infoHtml = `
           <div class="info-window">
@@ -733,7 +729,7 @@
             <p><strong>営業時間:</strong> ${facility["営業時間"] || "不明"}</p>
             <p><strong>電話番号:</strong> ${facility["電話番号"] || "なし"}</p>
             ${facility["HP"] ? `<p><a href="${facility["HP"]}" target="_blank" rel="noopener noreferrer">ホームページを見る</a></p>` : ''}
-            <p><a href="https://developers.google.com/maps/documentation/maps-static/cloud-customization/zoom-levels-leg?hl=ja5{encodeURIComponent(name + " " + facility["住所"])}" target="_blank" rel="noopener noreferrer">Googleマップで詳細を見る</a></p>
+            <p><a href="https://developers.google.com/maps/documentation/maps-static/cloud-customization/zoom-levels-leg?hl=ja6{encodeURIComponent(name + " " + facility["住所"])}" target="_blank" rel="noopener noreferrer">Googleマップで詳細を見る</a></p>
           </div>
         `;
 
@@ -748,15 +744,11 @@
         markers.push(marker);
       });
 
-      if (facilitiesToDisplay.length === 1) {
-          map.setCenter(markers[0].getPosition());
-          map.setZoom(singleMarkerZoom);
-      } else {
-          map.setCenter(defaultCenter);
-          map.setZoom(defaultZoom);
-      }
+      // マーカーが1つの場合のズーム調整ロジックも削除し、常にdefaultZoomを使用
+      map.setCenter(defaultCenter);
+      map.setZoom(defaultZoom);
       
-      adjustMarkerLabelVisibility();
+      // adjustMarkerLabelVisibility(); は不要なため削除
     }
 
     function filterMarkers() {
