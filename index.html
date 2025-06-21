@@ -2,7 +2,8 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <title>温泉津温泉 店舗マップ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>温泉津温泉 店舗マップ</title>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk&libraries=places" async defer></script>
   <style>
     html, body {
@@ -10,45 +11,46 @@
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex; /* ★追加: Flexbox レイアウトを有効にする */
-      flex-direction: column; /* ★追加: 要素を縦方向に並べる */
-      min-height: 100vh; /* ★修正: 少なくともビューポートの高さ全体を使う */
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
 
     h2 {
       color: #333;
       text-align: center;
       margin-top: 20px;
-      margin-bottom: 10px; /* 余白調整 */
+      margin-bottom: 10px;
+      font-size: 2em; /* デフォルトで少し大きく */
     }
     p {
       text-align: center;
       color: #555;
-      margin-bottom: 20px; /* 余白調整 */
-      padding: 0 10px; /* 小さい画面での余白 */
+      margin-bottom: 20px;
+      padding: 0 10px;
+      font-size: 1.1em; /* デフォルトで少し大きく */
     }
 
     #searchBox {
       display: block;
-      width: 90%; /* ★変更: 画面幅に対して少し大きめに */
+      width: 90%;
       max-width: 400px;
-      margin: 0px auto 20px auto; /* 上下の余白調整、左右中央 */
+      margin: 0px auto 20px auto;
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 5px;
       font-size: 16px;
-      box-sizing: border-box; /* ★追加: paddingとborderをwidthに含める */
+      box-sizing: border-box;
     }
 
     #map {
-      flex-grow: 1; /* ★追加: 残りのスペースを埋めるようにマップを拡張する */
-      height: calc(100vh - 200px); /* ★変更: ヘッダーや検索ボックスの分を引いた高さ（概算） */
-      min-height: 400px; /* ★追加: 最低限の高さは確保 */
+      flex-grow: 1;
+      height: calc(100vh - 200px);
+      min-height: 450px; /* ★変更: デフォルトの最小高さをさらに確保 */
       width: 100%;
       border: 1px solid #ddd;
       border-radius: 8px;
-      /* margin-top: 20px; は不要になるか、調整が必要 */
-      margin-top: 0; /* Flexboxで制御するためマージンをリセット */
+      margin-top: 0;
     }
 
     /* InfoWindowのスタイルはそのまま */
@@ -75,37 +77,54 @@
       text-decoration: underline;
     }
 
-    /* ★追加: 小さい画面用の調整 (例: スマートフォン) */
+    /* ★修正: 小さい画面用の調整 (例: スマートフォン) */
     @media (max-width: 768px) {
       h2 {
-        font-size: 1.5em;
+        font-size: 1.8em; /* ★変更: さらに大きく */
         margin-top: 15px;
       }
       p {
-        font-size: 0.9em;
+        font-size: 1.1em; /* ★変更: 読みやすく */
         margin-bottom: 15px;
       }
       #searchBox {
-        width: 95%; /* より小さなデバイスでさらに幅を広げる */
-        font-size: 14px;
-        padding: 8px;
+        width: 95%;
+        font-size: 16px; /* ★変更: 携帯でも見やすいフォントサイズ */
+        padding: 12px; /* ★変更: タップしやすく、ゆったりと */
       }
       #map {
         height: calc(100vh - 180px); /* ヘッダー分を少し減らす */
-        min-height: 300px; /* 最小高さをさらに調整 */
+        min-height: 350px; /* ★変更: 最小高さを調整 */
+      }
+      .gm-style-iw h2 {
+        font-size: 1.3em; /* ★変更: InfoWindowのH2を大きく */
+      }
+      .gm-style-iw p {
+        font-size: 1.0em; /* ★変更: InfoWindowのPを大きく */
       }
     }
 
-    /* ★追加: 非常に小さい画面用の調整 (例: 狭いスマートフォン) */
+    /* ★修正: 非常に小さい画面用の調整 (例: 狭いスマートフォン) */
     @media (max-width: 480px) {
+      h2 {
+        font-size: 1.6em; /* さらに調整 */
+      }
+      p {
+        font-size: 1em; /* さらに調整 */
+      }
       #map {
-        height: calc(100vh - 160px); /* さらに調整 */
+        height: calc(100vh - 160px);
+        min-height: 300px; /* ★変更: 最小高さを調整 */
+      }
+      #searchBox {
+        font-size: 16px; /* 携帯でも見やすいフォントサイズを維持 */
+        padding: 10px;
       }
       .gm-style-iw h2 {
-        font-size: 1.1em;
+        font-size: 1.2em; /* さらに調整 */
       }
       .gm-style-iw p {
-        font-size: 0.8em;
+        font-size: 0.9em; /* さらに調整 */
       }
     }
 
@@ -120,7 +139,7 @@
   <script>
     let map;
     let markers = [];
-    let bounds; // boundsは定義するが、この修正では直接fitBoundsには使わない
+    let bounds;
     let infoWindow;
     let allFacilities = [];
 
@@ -515,7 +534,7 @@
       markers.forEach(marker => marker.setMap(null));
       markers = [];
 
-      bounds = new google.maps.LatLngBounds(); // boundsは定義するが、この修正では直接fitBoundsには使わない
+      bounds = new google.maps.LatLngBounds();
       if (infoWindow) infoWindow.close();
 
       facilities.forEach(facility => {
@@ -565,15 +584,13 @@
         markers.push(marker);
       });
 
-      // マーカーがロードされた後も、マップの中心とズームレベルを固定する
       map.setCenter(defaultCenter);
       map.setZoom(16);
 
-      // 必要であれば、マーカーが1つしかない場合に、そのマーカーを拡大表示する特別なロジックを追加
       if (markers.length === 1) {
           map.setCenter(markers[0].getPosition());
           map.setZoom(17);
-      } else if (markers.length === 0) { // マーカーがない場合も考慮してdefaultCenterとzoomを設定
+      } else if (markers.length === 0) {
           map.setCenter(defaultCenter);
           map.setZoom(16);
       }
@@ -595,5 +612,7 @@
       updateMapMarkers(filtered);
     }
   </script>
+</body>
+</html>
 </body>
 </html>
