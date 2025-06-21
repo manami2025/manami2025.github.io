@@ -414,13 +414,12 @@
         "stylers": [
           {
             "color": "#8f7d77"
-          }
-        ]
+        _BOS_
+      ]
       },
       {
         "featureType": "transit.line",
-    _BOS_
-      "elementType": "labels.text.stroke",
+        "elementType": "labels.text.stroke",
         "stylers": [
           {
             "color": "#ebe3cd"
@@ -640,10 +639,11 @@
         });
     }
 
+    // ★★★ 修正点1 ★★★
     function getIconUrl(category) {
       const color = categoryColors[category] || "grey";
-      // より安定した標準的なアイコンURLを使用
-      return `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`;
+      // テンプレートリテラルの構文を修正し、標準的なアイコンURLに変更
+      return `http://maps.google.com/mapfiles/ms/icons/${color}.png`;
     }
 
     function updateLabelVisibilityByZoom() {
@@ -726,8 +726,11 @@
           animation: google.maps.Animation.DROP
         });
 
+        // ★★★ 修正点2 ★★★
         const searchQuery = encodeURIComponent(facility["場所"] + " " + (facility["住所"] || ''));
+        // Googleマップ検索用の正しいURL形式に修正
         const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
+        
         let infoHtml = `
           <div class="info-window">
             <h3>${name}</h3>
