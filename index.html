@@ -397,7 +397,8 @@
     ];
 
     // 温泉津温泉の推奨される中心座標
-    const defaultCenter = { lat: 35.09647639047312, lng: 132.34470995757528 };
+    // initMapのcenterと一致させて一貫性を保つ
+    const defaultCenter = { lat: 35.0963915628715, lng: 132.34470995757528 };
 
     // カテゴリー別にアイコン色を定義
     const categoryColors = {
@@ -420,8 +421,8 @@
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 35.0963915628715, lng: 132.34470995757528 }, // 温泉津温泉の中心に近い座標
-        zoom: 16, // 初期ズームレベル。fitBoundsが上書きする可能性あり
+        center: defaultCenter, // defaultCenterを使用し一貫性を高める
+        zoom: 16, // 初期ズームレベル
         styles: mapStyles
       });
 
@@ -524,11 +525,14 @@
 
       // マーカーの表示とズームレベルの調整
       if (markers.length > 0) {
-        map.fitBounds(bounds); // 全てのマーカーが収まるように地図を調整
+        map.fitBounds(bounds); // まず全てのマーカーが収まるように地図を調整
+
+        // fitBoundsでずれても、最終的に意図する中心に戻す
+        map.setCenter(defaultCenter);
 
         // fitBoundsが広範囲にズームアウトした場合に、最低限のズームレベルを保証する
-        // 例: 現在のズームレベルが17より小さかったら、17に設定し直す
-        if (map.getZoom() < 16) {
+        // 意図する中心に合わせて、ズームレベルも再調整する
+        if (map.getZoom() < 16) { // 初期ズームレベルと合わせる
             map.setZoom(16);
         }
 
@@ -541,7 +545,7 @@
       } else {
         // マーカーがない場合（検索結果が0件など）はデフォルトの場所にズーム
         map.setCenter(defaultCenter);
-        map.setZoom(16);
+        map.setZoom(16); // initMapのズームレベルと合わせる
       }
     }
 
