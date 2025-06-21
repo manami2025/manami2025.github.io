@@ -396,6 +396,7 @@
       }
     ];
 
+    // 温泉津温泉の中心座標
     const defaultCenter = { lat: 35.09647639047312, lng: 132.3470713278045 };
 
     // カテゴリー別にアイコン色を定義
@@ -419,9 +420,9 @@
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
-  　 　center: { lat: 35.0963915628715, lng: 132.34470995757528 },
-        zoom:17, 
-        styles: mapStyles 
+        center: { lat: 35.0963915628715, lng: 132.34470995757528 }, // 温泉津温泉の中心座標に近いものを設定
+        zoom: 17, // 初期ズームレベル。fitBoundsが上書きする可能性があるため注意
+        styles: mapStyles
       });
 
       document.getElementById("searchBox").addEventListener("input", filterMarkers);
@@ -431,7 +432,7 @@
 
     function fetchSpreadsheetData() {
       const sheetApiUrl =
-        "https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/シート1?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk"; 
+        "https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/シート1?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk";
 
       fetch(sheetApiUrl)
         .then((response) => {
@@ -461,6 +462,10 @@
     }
 
     function updateMapMarkers(facilities) {
+      // **既存のマーカーを全てクリア** (これが重要です！)
+      markers.forEach(marker => marker.setMap(null));
+      markers = []; // マーカー配列も空にする
+
       bounds = new google.maps.LatLngBounds();
       if (infoWindow) infoWindow.close();
 
@@ -512,7 +517,28 @@
         bounds.extend(position);
       });
 
+      // マーカーの表示とズームレベルの調整
+      if (markers.length > 0) {
+        map.fitBounds(bounds); // 全てのマーカーが収まるように地図を調整
 
+        // fitBoundsが広範囲にズームアウトした場合に、最低限のズームレベルを保証する
+        // 例: ズームレベルが17より小さかったら、17に設定し直す
+        if (map.getZoom() < 17) {
+            map.setZoom(17);
+        }
+
+        // もしマーカーが1つしかない場合、fitBoundsは非常にワイドなズームになることがあるため、
+        // その場合は中心を設定し直して適切なズームにする
+        if (markers.length === 1) {
+            map.setCenter(markers[0].getPosition());
+            map.setZoom(17); // 単一マーカーに最適なズームレベル
+        }
+      } else {
+        // マーカーがない場合はデフォルトの場所にズーム
+        map.setCenter(defaultCenter);
+        map.setZoom(15);
+      }
+    } // updateMapMarkers関数の閉じカッコが正しい位置にあることを確認
 
     function filterMarkers() {
       const keyword = document.getElementById("searchBox").value.toLowerCase();
