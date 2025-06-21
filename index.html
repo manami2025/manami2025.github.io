@@ -419,7 +419,7 @@
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat : 35.09681291454417 , lng: 132.34350832796386 },
+        center: { lat: 35.0963915628715, lng: 132.34470995757528 },
         zoom: 16,
         styles: mapStyles
       });
@@ -537,7 +537,8 @@
         // マーカーがない場合（検索結果が0件など）はデフォルトの場所にズーム
         map.setCenter(defaultCenter);
         map.setZoom(15);
-      } 
+      }
+    } // <-- updateMapMarkers 関数の正しい閉じ括弧
 
     function filterMarkers() {
       const keyword = document.getElementById("searchBox").value.toLowerCase();
