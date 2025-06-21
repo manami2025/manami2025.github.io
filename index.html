@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>AdvancedMarkerElementでスプレッドシートマーカー表示</title>
   <script
-    src="https://maps.googleapis.com/maps/api/js?key=【あなたのAPIキー】&libraries=marker"
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk&libraries=places&libraries=marker"
     async
     defer
   ></script>
@@ -48,7 +48,7 @@
 
     function fetchSpreadsheetData() {
       const sheetApiUrl =
-        "https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/シート1?key=【あなたのAPIキー】";
+        "https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/シート1?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk&libraries=places";
 
       fetch(sheetApiUrl)
         .then((res) => {
