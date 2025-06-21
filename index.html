@@ -588,6 +588,24 @@
         infoWindow = null;
       }
 
+      // テキストを5文字ごとに区切り、改行コードを挿入する関数
+      const formatLabelText = (text) => {
+          if (!text) return '';
+          let formattedText = '';
+          // 最大10文字（5文字x2行）に制限し、超過する場合は省略
+          const displayLength = Math.min(text.length, 10);
+          for (let i = 0; i < displayLength; i += 5) {
+              formattedText += text.substring(i, i + 5);
+              if (i + 5 < displayLength) {
+                  formattedText += '\n';
+              }
+          }
+          if (text.length > 10) {
+              formattedText += '...';
+          }
+          return formattedText;
+      };
+
       facilitiesToDisplay.forEach(facility => {
         const lat = parseFloat(facility["緯度"]);
         const lng = parseFloat(facility["経度"]);
@@ -599,34 +617,36 @@
         }
 
         const position = new google.maps.LatLng(lat, lng);
+        
+        // マーカーアイコンのサイズを基準にラベルのオフセットを計算
+        const iconWidth = 32; // scaledSizeで指定した幅
+        const iconHeight = 32; // scaledSizeで指定した高さ
+        
+        // ラベルを右側に表示する場合:
+        // x座標はアイコンの中心からアイコン幅の半分 + 少しの余白
+        // y座標はアイコンの中心 (または少し上)
+        const labelOriginX = iconWidth / 2 + 5; // アイコンの右端から5pxずらす (右に表示)
+        const labelOriginY = iconHeight / 2; // アイコンの中央に合わせる
 
-        // テキストを5文字ごとに区切り、改行コードを挿入する関数
-        const formatLabelText = (text) => {
-            if (!text) return '';
-            let formattedText = '';
-            for (let i = 0; i < text.length; i += 5) {
-                formattedText += text.substring(i, i + 5);
-                if (i + 5 < text.length) {
-                    formattedText += '\n'; // 5文字ごとに改行
-                }
-            }
-            return formattedText;
-        };
-
+        // ラベルを左側に表示したい場合は、labelOriginXを調整してください
+        // 例: iconWidth / 2 + ラベルの最大幅 + 余白 (負の値で左にずれる)
+        // const labelOriginX_left = -(iconWidth / 2 + 50); // 50pxはラベルの幅の目安
+        
         const marker = new google.maps.Marker({
           position: position,
           map: map,
           title: name,
           icon: {
             url: getIconUrl(category),
-            scaledSize: new google.maps.Size(32, 32)
+            scaledSize: new google.maps.Size(iconWidth, iconHeight), // アイコンサイズを調整
           },
           label: {
-            text: formatLabelText(name), // ★変更: 5文字2列に整形したテキストを使用
-            color: "#888", // ★変更: グレーの文字色
-            fontSize: "12px",
+            text: formatLabelText(name), // 整形済みテキストを使用
+            color: "#888", // グレーの文字色
+            fontSize: "10px", // ★変更: さらに文字サイズを小さく
             fontWeight: "bold",
           },
+          labelOrigin: new google.maps.Point(labelOriginX, labelOriginY), // ★追加: ラベルの表示位置を調整
           animation: google.maps.Animation.DROP
         });
 
@@ -638,7 +658,7 @@
             <p><strong>営業時間:</strong> ${facility["営業時間"] || "不明"}</p>
             <p><strong>電話番号:</strong> ${facility["電話番号"] || "なし"}</p>
             ${facility["HP"] ? `<p><a href="${facility["HP"]}" target="_blank" rel="noopener noreferrer">ホームページを見る</a></p>` : ''}
-            <p><a href="http://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " " + facility["住所"])}" target="_blank" rel="noopener noreferrer">Googleマップで詳細を見る</a></p>
+            <p><a href="http://maps.google.com/mapfiles/ms/icons/$5{encodeURIComponent(name + " " + facility["住所"])}" target="_blank" rel="noopener noreferrer">Googleマップで詳細を見る</a></p>
           </div>
         `;
 
