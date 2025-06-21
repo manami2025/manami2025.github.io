@@ -235,7 +235,6 @@
       },
       {
         "featureType": "landscape.natural",
-        "elementType": "geometry",
         "stylers": [
           {
             "color": "#dfd2ae"
@@ -600,6 +599,20 @@
         }
 
         const position = new google.maps.LatLng(lat, lng);
+
+        // テキストを5文字ごとに区切り、改行コードを挿入する関数
+        const formatLabelText = (text) => {
+            if (!text) return '';
+            let formattedText = '';
+            for (let i = 0; i < text.length; i += 5) {
+                formattedText += text.substring(i, i + 5);
+                if (i + 5 < text.length) {
+                    formattedText += '\n'; // 5文字ごとに改行
+                }
+            }
+            return formattedText;
+        };
+
         const marker = new google.maps.Marker({
           position: position,
           map: map,
@@ -609,8 +622,8 @@
             scaledSize: new google.maps.Size(32, 32)
           },
           label: {
-            text: name.length > 15 ? name.slice(0, 15) + "…" : name,
-            color: "#000",
+            text: formatLabelText(name), // ★変更: 5文字2列に整形したテキストを使用
+            color: "#888", // ★変更: グレーの文字色
             fontSize: "12px",
             fontWeight: "bold",
           },
@@ -625,7 +638,7 @@
             <p><strong>営業時間:</strong> ${facility["営業時間"] || "不明"}</p>
             <p><strong>電話番号:</strong> ${facility["電話番号"] || "なし"}</p>
             ${facility["HP"] ? `<p><a href="${facility["HP"]}" target="_blank" rel="noopener noreferrer">ホームページを見る</a></p>` : ''}
-            <p><a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " " + facility["住所"])}" target="_blank" rel="noopener noreferrer">Googleマップで詳細を見る</a></p>
+            <p><a href="http://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " " + facility["住所"])}" target="_blank" rel="noopener noreferrer">Googleマップで詳細を見る</a></p>
           </div>
         `;
 
