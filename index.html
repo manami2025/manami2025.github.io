@@ -1,149 +1,93 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>温泉津温泉 店舗マップ</title>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAE5sybi3eDWilyCfnTjto8iKzOezd9ivA&libraries=places" async defer></script>
+  <meta charset="UTF-8">
+  <title>スプレッドシート連携マップ</title>
   <style>
     #map {
+      height: 600px;
       width: 100%;
-      height: 800px;
-      min-height: 500px;
-      background-color: #e0e0e0;
     }
-    #searchBox {
-      margin: 10px 0;
-      padding: 8px;
-      font-size: 16px;
-      width: 100%;
-      max-width: 400px;
+    #searchInput {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 5;
+      width: 300px;
     }
   </style>
 </head>
 <body>
-  <h2>温泉津温泉 一覧マップ</h2>
-  <p>温泉津温泉の宿泊、飲食、お土産、体験などの情報をまとめました。</p>
-  <input type="text" id="searchBox" placeholder="店舗名やカテゴリで検索" />
+  <input type="text" id="searchInput" placeholder="店舗名を検索">
   <div id="map"></div>
-
   <script>
     let map;
     let markers = [];
-    let infoWindow;
-    let allFacilities = [];
-
     const categoryColors = {
-      "温泉・ケア": "red",
-      "買う": "blue",
-      "見る": "green",
-      "食べる": "purple",
-      "遊ぶ・体験": "yellow",
-      "泊まる": "orange"
-    };
-
-    window.onload = () => {
-      const timer = setInterval(() => {
-        if (
-          typeof google !== "undefined" &&
-          typeof google.maps !== "undefined"
-        ) {
-          clearInterval(timer);
-          initMap();
-        }
-      }, 500);
+      '温泉・ケア': 'red',
+      '買う': 'blue',
+      '見る': 'green',
+      '食べる': 'orange',
+      '遊ぶ・体験': 'purple',
+      '泊まる': 'brown'
     };
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
         center: { lat: 35.09647639047312, lng: 132.3470713278045 },
         zoom: 16,
+        mapTypeControl: false,
+        fullscreenControl: false
       });
 
-      document.getElementById("searchBox").addEventListener("input", filterMarkers);
-      fetchSpreadsheetData();
-    }
+      fetch("https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/%E3%82%B7%E3%83%BC%E3%83%881?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUkpub?output=tsv")
+        .then(response => response.text())
+        .then(data => {
+          const rows = data.trim().split("\n").slice(1); // ヘッダー除外
+          rows.forEach(row => {
+            const [category, name, lat, lng] = row.split("\t");
+            if (!lat || !lng) return;
 
-    function fetchSpreadsheetData() {
-      const sheetApiUrl =
-        "https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/シート1?key=AIzaSyAE5sybi3eDWilyCfnTjto8iKzOezd9ivA";
+            const color = categoryColors[category] || "gray";
+            const marker = new google.maps.Marker({
+              position: { lat: parseFloat(lat), lng: parseFloat(lng) },
+              map,
+              icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 8,
+                fillColor: color,
+                fillOpacity: 1,
+                strokeWeight: 1,
+                strokeColor: "#000"
+              },
+              title: name
+            });
 
-      fetch(sheetApiUrl)
-        .then(res => {
-          if (!res.ok) throw new Error(`HTTPエラー: ${res.status}`);
-          return res.json();
-        })
-        .then(data => processData(data))
-        .catch(err => console.error("❌ データ取得エラー:", err));
-    }
+            const label = new google.maps.InfoWindow({
+              content: `<strong>${name}</strong><br>${category}`
+            });
 
-    function processData(data) {
-      const headers = data.values[0].map(h => h.trim());
-      const facilities = data.values.slice(1).map(row => {
-        const obj = {};
-        headers.forEach((h, i) => (obj[h] = row[i] || ""));
-        return obj;
-      });
-      allFacilities = facilities;
-      updateMapMarkers(facilities);
-    }
+            marker.addListener("click", () => {
+              label.open(map, marker);
+            });
 
-    function getIconUrl(cat) {
-      const c = categoryColors[cat] || "gray";
-      return `https://maps.google.com/mapfiles/ms/icons/${c}-dot.png`;
-    }
-
-    function updateMapMarkers(facilities) {
-      markers.forEach(m => m.setMap(null));
-      markers = [];
-      if (infoWindow) infoWindow.close();
-
-      facilities.forEach(f => {
-        const lat = parseFloat(f["緯度"]);
-        const lng = parseFloat(f["経度"]);
-        const name = f["場所"] || "名称不明";
-        const cat = f["カテゴリー"] || "";
-
-        if (isNaN(lat) || isNaN(lng)) return;
-
-        const m = new google.maps.Marker({
-          position: { lat, lng },
-          map: map,
-          title: name,
-          icon: { url: getIconUrl(cat) },
-          label: {
-            text: name.length > 10 ? name.slice(0,10) + "…" : name,
-            color: "#000",
-            fontSize: "12px",
-            fontWeight: "bold",
-          }
+            marker.category = category;
+            marker.storeName = name;
+            markers.push(marker);
+          });
         });
 
-        m.addListener("click", () => {
-          if (infoWindow) infoWindow.close();
-          let html = `<div style="max-width:300px;"><h2>${name}</h2>`;
-          html += `<p><strong>カテゴリ:</strong> ${cat}</p>`;
-          html += `<p><strong>定休日:</strong> ${f["定休日"] || "なし"}</p>`;
-          html += `<p><strong>営業時間:</strong> ${f["営業時間"] || "不明"}</p>`;
-          html += `<p><strong>電話番号:</strong> ${f["電話番号"] || "なし"}</p>`;
-          if (f["HP"]) html += `<p><a href="${f["HP"]}" target="_blank" rel="noopener noreferrer">HPを見る</a></p>`;
-          html += `</div>`;
-          infoWindow = new google.maps.InfoWindow({ content: html });
-          infoWindow.open(map, m);
+      document.getElementById("searchInput").addEventListener("input", function () {
+        const keyword = this.value.trim();
+        markers.forEach(marker => {
+          const match = marker.storeName.includes(keyword);
+          marker.setVisible(match || keyword === "");
         });
-
-        markers.push(m);
       });
     }
-
-    function filterMarkers() {
-      const kw = document.getElementById("searchBox").value.toLowerCase();
-      const filtered = allFacilities.filter(f =>
-        (f["場所"] && f["場所"].toLowerCase().includes(kw)) ||
-        (f["カテゴリー"] && f["カテゴリー"].toLowerCase().includes(kw))
-      );
-      updateMapMarkers(filtered);
-    }
+  </script>
+  <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAE5sybi3eDWilyCfnTjto8iKzOezd9ivA &callback=initMap">
   </script>
 </body>
 </html>
-
