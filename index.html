@@ -33,6 +33,8 @@
     let infoWindow;
     let allFacilities = [];
 
+     const defaultCenter = { lat: 35.09647639047312, lng: 132.3470713278045 };
+
     // カテゴリー別にアイコン色を定義
     const categoryColors = {
       "温泉・ケア": "red",
@@ -55,7 +57,7 @@
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
         center: { lat: 34.144389, lng: 131.429866 },
-        zoom: 14,
+        zoom: 16,
       });
 
       document.getElementById("searchBox").addEventListener("input", filterMarkers);
