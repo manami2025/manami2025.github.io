@@ -533,19 +533,19 @@
         // fitBoundsが広範囲にズームアウトした場合に、最低限のズームレベルを保証する
         // 意図する中心に合わせて、ズームレベルも再調整する
         if (map.getZoom() < 16) { // 初期ズームレベルと合わせる
-            map.setZoom(16);
+            map.setZoom(17);
         }
 
         // もしマーカーが1つしかない場合、fitBoundsは非常にワイドなズームになることがあるため、
         // その場合は中心を設定し直して適切なズームにする
         if (markers.length === 1) {
             map.setCenter(markers[0].getPosition()); // 単一マーカーを中心に設定
-            map.setZoom(17); // 単一マーカーに最適なズームレベル
+            map.setZoom(18); // 単一マーカーに最適なズームレベル
         }
       } else {
         // マーカーがない場合（検索結果が0件など）はデフォルトの場所にズーム
         map.setCenter(defaultCenter);
-        map.setZoom(16); // initMapのズームレベルと合わせる
+        map.setZoom(17); // initMapのズームレベルと合わせる
       }
     }
 
