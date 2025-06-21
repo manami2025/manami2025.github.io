@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>温泉津温泉 店舗マップ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <title>温泉津温泉 店舗マップ</title>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk&libraries=places" async defer></script>
   <style>
     html, body {
@@ -10,47 +10,62 @@
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex; /* ★追加: Flexbox レイアウトを有効にする */
+      flex-direction: column; /* ★追加: 要素を縦方向に並べる */
+      min-height: 100vh; /* ★修正: 少なくともビューポートの高さ全体を使う */
     }
-    #map {
-      height: 600px;
-      width: 100%;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      margin-top: 20px;
-    }
+
     h2 {
       color: #333;
       text-align: center;
       margin-top: 20px;
+      margin-bottom: 10px; /* 余白調整 */
     }
     p {
       text-align: center;
       color: #555;
+      margin-bottom: 20px; /* 余白調整 */
+      padding: 0 10px; /* 小さい画面での余白 */
     }
+
     #searchBox {
       display: block;
-      width: 80%;
+      width: 90%; /* ★変更: 画面幅に対して少し大きめに */
       max-width: 400px;
-      margin: 20px auto;
+      margin: 0px auto 20px auto; /* 上下の余白調整、左右中央 */
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 5px;
       font-size: 16px;
+      box-sizing: border-box; /* ★追加: paddingとborderをwidthに含める */
     }
-    .gm-style-iw { /* InfoWindowのスタイル調整 */
+
+    #map {
+      flex-grow: 1; /* ★追加: 残りのスペースを埋めるようにマップを拡張する */
+      height: calc(100vh - 200px); /* ★変更: ヘッダーや検索ボックスの分を引いた高さ（概算） */
+      min-height: 400px; /* ★追加: 最低限の高さは確保 */
+      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      /* margin-top: 20px; は不要になるか、調整が必要 */
+      margin-top: 0; /* Flexboxで制御するためマージンをリセット */
+    }
+
+    /* InfoWindowのスタイルはそのまま */
+    .gm-style-iw {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .gm-style-iw h2 {
       font-size: 1.2em;
       margin-bottom: 5px;
       color: #333;
-      text-align: left; /* InfoWindow内のH2は左寄せに */
+      text-align: left;
     }
     .gm-style-iw p {
       font-size: 0.9em;
       margin-bottom: 3px;
       color: #666;
-      text-align: left; /* InfoWindow内のPは左寄せに */
+      text-align: left;
     }
     .gm-style-iw a {
       color: #007bff;
@@ -59,6 +74,41 @@
     .gm-style-iw a:hover {
       text-decoration: underline;
     }
+
+    /* ★追加: 小さい画面用の調整 (例: スマートフォン) */
+    @media (max-width: 768px) {
+      h2 {
+        font-size: 1.5em;
+        margin-top: 15px;
+      }
+      p {
+        font-size: 0.9em;
+        margin-bottom: 15px;
+      }
+      #searchBox {
+        width: 95%; /* より小さなデバイスでさらに幅を広げる */
+        font-size: 14px;
+        padding: 8px;
+      }
+      #map {
+        height: calc(100vh - 180px); /* ヘッダー分を少し減らす */
+        min-height: 300px; /* 最小高さをさらに調整 */
+      }
+    }
+
+    /* ★追加: 非常に小さい画面用の調整 (例: 狭いスマートフォン) */
+    @media (max-width: 480px) {
+      #map {
+        height: calc(100vh - 160px); /* さらに調整 */
+      }
+      .gm-style-iw h2 {
+        font-size: 1.1em;
+      }
+      .gm-style-iw p {
+        font-size: 0.8em;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -70,7 +120,7 @@
   <script>
     let map;
     let markers = [];
-    let bounds;
+    let bounds; // boundsは定義するが、この修正では直接fitBoundsには使わない
     let infoWindow;
     let allFacilities = [];
 
@@ -397,7 +447,6 @@
     ];
 
     // 温泉津温泉の推奨される中心座標
-    // initMapのcenterと一致させて一貫性を保つ
     const defaultCenter = { lat: 35.0963915628715, lng: 132.34470995757528 };
 
     // カテゴリー別にアイコン色を定義
@@ -421,8 +470,8 @@
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
-        center: defaultCenter, // defaultCenterを使用し一貫性を高める
-        zoom: 17, // 初期ズームレベル
+        center: defaultCenter,
+        zoom: 16,
         styles: mapStyles
       });
 
@@ -432,8 +481,6 @@
     }
 
     function fetchSpreadsheetData() {
-      // スプレッドシートのAPIキーとURLは、ご自身のものに置き換えてください。
-      // APIキーのセキュリティ設定（HTTPリファラー制限など）を確認してください。
       const sheetApiUrl =
         "https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/シート1?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk";
 
@@ -461,17 +508,14 @@
 
     function getIconUrl(category) {
       const color = categoryColors[category] || "gray";
-      // Google Mapsのドットアイコンは非推奨になる可能性があります。
-      // より持続可能なカスタムアイコンの使用を検討してください。
       return `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`;
     }
 
     function updateMapMarkers(facilities) {
-      // 既存のマーカーを全てクリア (検索時など、マーカーを再描画する際に重要)
       markers.forEach(marker => marker.setMap(null));
-      markers = []; // マーカー配列も空にする
+      markers = [];
 
-      bounds = new google.maps.LatLngBounds();
+      bounds = new google.maps.LatLngBounds(); // boundsは定義するが、この修正では直接fitBoundsには使わない
       if (infoWindow) infoWindow.close();
 
       facilities.forEach(facility => {
@@ -482,7 +526,7 @@
 
         if (isNaN(lat) || isNaN(lng)) {
           console.warn(`緯度または経度が無効です: ${name}, Lat: ${facility["緯度"]}, Lng: ${facility["経度"]}`);
-          return; // 無効な緯度経度ではマーカーを作成しない
+          return;
         }
 
         const position = new google.maps.LatLng(lat, lng);
@@ -494,7 +538,6 @@
             url: getIconUrl(category),
           },
           label: {
-            // ラベルの文字数を15文字に調整し、オーバーフロー時に「…」を追加
             text: name.length > 15 ? name.slice(0, 15) + "…" : name,
             color: "#000",
             fontSize: "8px",
@@ -520,32 +563,19 @@
         });
 
         markers.push(marker);
-        bounds.extend(position); // 各マーカーの座標をboundsに追加
       });
 
-      // マーカーの表示とズームレベルの調整
-      if (markers.length > 0) {
-        map.fitBounds(bounds); // まず全てのマーカーが収まるように地図を調整
+      // マーカーがロードされた後も、マップの中心とズームレベルを固定する
+      map.setCenter(defaultCenter);
+      map.setZoom(16);
 
-        // fitBoundsでずれても、最終的に意図する中心に戻す
-        map.setCenter(defaultCenter);
-
-        // fitBoundsが広範囲にズームアウトした場合に、最低限のズームレベルを保証する
-        // 意図する中心に合わせて、ズームレベルも再調整する
-        if (map.getZoom() < 16) { // 初期ズームレベルと合わせる
-            map.setZoom(17);
-        }
-
-        // もしマーカーが1つしかない場合、fitBoundsは非常にワイドなズームになることがあるため、
-        // その場合は中心を設定し直して適切なズームにする
-        if (markers.length === 1) {
-            map.setCenter(markers[0].getPosition()); // 単一マーカーを中心に設定
-            map.setZoom(18); // 単一マーカーに最適なズームレベル
-        }
-      } else {
-        // マーカーがない場合（検索結果が0件など）はデフォルトの場所にズーム
-        map.setCenter(defaultCenter);
-        map.setZoom(17); // initMapのズームレベルと合わせる
+      // 必要であれば、マーカーが1つしかない場合に、そのマーカーを拡大表示する特別なロジックを追加
+      if (markers.length === 1) {
+          map.setCenter(markers[0].getPosition());
+          map.setZoom(17);
+      } else if (markers.length === 0) { // マーカーがない場合も考慮してdefaultCenterとzoomを設定
+          map.setCenter(defaultCenter);
+          map.setZoom(16);
       }
     }
 
@@ -553,7 +583,6 @@
       const keyword = document.getElementById("searchBox").value.toLowerCase();
 
       const filtered = allFacilities.filter(facility => {
-        // null/undefined チェックを追加してエラーを回避
         const place = facility["場所"] ? facility["場所"].toLowerCase() : "";
         const category = facility["カテゴリー"] ? facility["カテゴリー"].toLowerCase() : "";
 
