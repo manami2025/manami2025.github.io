@@ -305,7 +305,6 @@
         "featureType": "poi.park",
         "elementType": "geometry.fill",
         "stylers": [
-    _BOS_
           {
             "color": "#a5b076"
           }
@@ -337,7 +336,7 @@
             "visibility": "off"
           }
         ]
-  _BOS_
+      },
       {
         "featureType": "road.arterial",
         "elementType": "geometry",
@@ -354,8 +353,7 @@
           {
             "color": "#f8c967"
           }
-    _BOS_
-      ]
+        ]
       },
       {
         "featureType": "road.highway",
@@ -372,8 +370,8 @@
         "stylers": [
           {
             "color": "#e98d58"
-          }
-        ]
+        _BOS_
+      ]
       },
       {
         "featureType": "road.highway.controlled_access",
@@ -479,14 +477,12 @@
         "stylers": [
           {
             "visibility": "simplified"
-        _BOS_
-      }
+          }
         ]
       },
       {
         "featureType": "transit.station.rail",
-      _BOS_
-"elementType": "labels.text.fill",
+        "elementType": "labels.text.fill",
         "stylers": [
           {
             "visibility": "simplified"
@@ -570,6 +566,9 @@
         fullscreenControl: false
       });
 
+      // ★★★ 変更点1: ズームレベルが変わった時のイベントリスナーを追加 ★★★
+      map.addListener('zoom_changed', updateLabelVisibilityByZoom);
+
       const searchBox = document.getElementById("searchBox");
       if (searchBox) {
           searchBox.addEventListener("input", filterMarkers);
@@ -578,7 +577,7 @@
       if (categoryFilter) {
           categoryFilter.addEventListener("change", filterMarkers);
       }
-      
+      
       fetchSpreadsheetData();
     }
 
@@ -646,6 +645,17 @@
       return `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`;
     }
 
+    // ★★★ 変更点2: ズームレベルに応じてラベル表示を切り替える新関数 ★★★
+    function updateLabelVisibilityByZoom() {
+      if (!map) return;
+      const currentZoom = map.getZoom();
+      const newOpacity = (currentZoom === 19) ? 1 : 0;
+
+      markers.forEach(marker => {
+        marker.setOptions({ label: { ...marker.getLabel(), opacity: newOpacity } });
+      });
+    }
+
     function updateMapMarkers(facilitiesToDisplay) {
       markers.forEach(marker => marker.setMap(null));
       markers = [];
@@ -665,17 +675,17 @@
           if (text.length > totalMaxChars) {
               displayableText = text.substring(0, totalMaxChars - 1) + '…'; 
               if (displayableText.length > totalMaxChars) {
-                 displayableText = displayableText.substring(0, totalMaxChars - 1) + '…';
+                 displayableText = displayableText.substring(0, totalMaxChars - 1) + '…';
               }
           }
-          
+          
           for (let i = 0; i < displayableText.length; i += maxCharsPerLine) {
               formattedText += displayableText.substring(i, i + maxCharsPerLine);
               if (i + maxCharsPerLine < displayableText.length) {
                   formattedText += '\n';
               }
           }
-          
+          
           return formattedText;
       };
 
@@ -690,12 +700,12 @@
         }
 
         const position = new google.maps.LatLng(lat, lng);
-        
+        
         const iconWidth = 32;
         const iconHeight = 32;
-        
+        
         const labelOriginX = iconWidth / 2;
-        const labelOriginY = iconHeight - 12; // ラベルをアイコンの根本に移動
+        const labelOriginY = iconHeight - 12;
 
         const marker = new google.maps.Marker({
           position: position,
@@ -710,20 +720,13 @@
             color: "#888",
             fontSize: "10px",
             fontWeight: "bold",
-            opacity: 0, 
+            opacity: 0, // ★★★ 変更点3: 初期状態は常に非表示(0)にしておく
           },
           labelOrigin: new google.maps.Point(labelOriginX, labelOriginY),
           animation: google.maps.Animation.DROP
         });
 
-        marker.addListener("mouseover", () => {
-          marker.setOptions({ label: { ...marker.getLabel(), opacity: 1 } });
-        });
-
-        marker.addListener("mouseout", () => {
-          marker.setOptions({ label: { ...marker.getLabel(), opacity: 0 } });
-  _BOS_
-      });
+        // マウスオーバーとマウスアウトのイベントリスナーは削除
 
         let infoHtml = `
           <div class="info-window">
@@ -755,6 +758,9 @@
           map.setCenter(defaultCenter);
           map.setZoom(defaultZoom);
       }
+
+      // ★★★ 変更点3: マーカー作成後に一度、ズームレベルに応じた表示チェックを行う
+      updateLabelVisibilityByZoom();
     }
 
     function filterMarkers() {
@@ -772,7 +778,7 @@
 
         return keywordMatch && categoryMatch;
       });
-      
+      
       updateMapMarkers(filteredFacilities);
     }
   </script>
