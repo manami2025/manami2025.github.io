@@ -1,17 +1,19 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>AdvancedMarkerElementでスプレッドシートマーカー表示</title>
-  <script
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk&libraries=places&libraries=marker"
-    async
-    defer
-  ></script>
+  <meta charset="UTF-8">
+  <title>スプレッドシート連携マップ</title>
   <style>
     #map {
-      height: 800px;
+      height: 600px;
       width: 100%;
+    }
+    #searchInput {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 5;
+      width: 300px;
     }
   </style>
 </head>
