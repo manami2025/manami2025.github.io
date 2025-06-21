@@ -34,6 +34,7 @@
       line-height: 1.6;
     }
 
+    /* 検索ボックスとドロップダウンのコンテナ */
     .filter-controls {
       display: flex;
       flex-wrap: wrap;
@@ -644,7 +645,7 @@
     }
 
     function adjustMarkerLabelVisibility() {
-        if (!map || !markers.length) return; // mapまたはmarkersがまだ存在しない場合は何もしない
+        if (!map || !markers.length) return;
 
         const currentZoom = map.getZoom();
         const showLabels = currentZoom >= 19; // ズームレベル19以上で表示
@@ -719,7 +720,6 @@
             color: "#888",
             fontSize: "10px",
             fontWeight: "bold",
-            // マーカー作成時にも、現在のズームレベルに応じて初期opacityを設定
             opacity: map.getZoom() >= 19 ? 1 : 0, 
           },
           animation: google.maps.Animation.DROP
@@ -733,7 +733,7 @@
             <p><strong>営業時間:</strong> ${facility["営業時間"] || "不明"}</p>
             <p><strong>電話番号:</strong> ${facility["電話番号"] || "なし"}</p>
             ${facility["HP"] ? `<p><a href="${facility["HP"]}" target="_blank" rel="noopener noreferrer">ホームページを見る</a></p>` : ''}
-            <p><a href="https://developers.google.com/maps/documentation/maps-static/cloud-customization/zoom-levels-leg?hl=ja4{encodeURIComponent(name + " " + facility["住所"])}" target="_blank" rel="noopener noreferrer">Googleマップで詳細を見る</a></p>
+            <p><a href="https://developers.google.com/maps/documentation/maps-static/cloud-customization/zoom-levels-leg?hl=ja5{encodeURIComponent(name + " " + facility["住所"])}" target="_blank" rel="noopener noreferrer">Googleマップで詳細を見る</a></p>
           </div>
         `;
 
@@ -756,7 +756,6 @@
           map.setZoom(defaultZoom);
       }
       
-      // マーカーが更新された後、必ずラベルの表示状態を調整する
       adjustMarkerLabelVisibility();
     }
 
