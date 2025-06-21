@@ -34,7 +34,6 @@
       line-height: 1.6;
     }
 
-    /* 検索ボックスとドロップダウンのコンテナ */
     .filter-controls {
       display: flex;
       flex-wrap: wrap;
@@ -566,7 +565,6 @@
         fullscreenControl: false
       });
 
-      // マップのズーム変更イベントリスナーを設定
       map.addListener('zoom_changed', adjustMarkerLabelVisibility);
 
       const searchBox = document.getElementById("searchBox");
@@ -645,15 +643,16 @@
       return `http://maps.google.com/mapfiles/ms/icons/${color}-dot.png`;
     }
 
-    // マーカーラベルの表示/非表示をズームレベルに応じて調整する関数
     function adjustMarkerLabelVisibility() {
+        if (!map || !markers.length) return; // mapまたはmarkersがまだ存在しない場合は何もしない
+
         const currentZoom = map.getZoom();
         const showLabels = currentZoom >= 19; // ズームレベル19以上で表示
 
         markers.forEach(marker => {
-            // 現在のラベルオプションを取得し、opacityのみ変更して適用
             const currentLabel = marker.getLabel();
             if (currentLabel) {
+                // ラベルが存在する場合のみopacityを変更
                 marker.setOptions({ label: { ...currentLabel, opacity: showLabels ? 1 : 0 } });
             }
         });
@@ -707,11 +706,6 @@
         const iconWidth = 32;
         const iconHeight = 32;
         
-        // ラベルはデフォルト位置 (アイコンの上部) に戻すため、labelOriginは削除
-        // もしアイコン中央より少し上などに調整したい場合は、labelOriginを再設定
-        // const labelOriginX = iconWidth / 2; // 例: アイコン水平中央
-        // const labelOriginY = 0; // 例: アイコン上端 (デフォルトに近い)
-
         const marker = new google.maps.Marker({
           position: position,
           map: map,
@@ -725,16 +719,11 @@
             color: "#888",
             fontSize: "10px",
             fontWeight: "bold",
-            // 初期opacityは現在のズームレベルに応じて設定
+            // マーカー作成時にも、現在のズームレベルに応じて初期opacityを設定
             opacity: map.getZoom() >= 19 ? 1 : 0, 
           },
-          // labelOriginは削除しました。デフォルト位置に戻ります。
           animation: google.maps.Animation.DROP
         });
-
-        // マウスオーバー/マウスアウトのイベントリスナーは削除しました
-        // marker.addListener("mouseover", ...);
-        // marker.addListener("mouseout", ...);
 
         let infoHtml = `
           <div class="info-window">
@@ -744,7 +733,7 @@
             <p><strong>営業時間:</strong> ${facility["営業時間"] || "不明"}</p>
             <p><strong>電話番号:</strong> ${facility["電話番号"] || "なし"}</p>
             ${facility["HP"] ? `<p><a href="${facility["HP"]}" target="_blank" rel="noopener noreferrer">ホームページを見る</a></p>` : ''}
-            <p><a href="https://developers.google.com/maps/documentation/maps-static/cloud-customization/zoom-levels-leg?hl=ja3{encodeURIComponent(name + " " + facility["住所"])}" target="_blank" rel="noopener noreferrer">Googleマップで詳細を見る</a></p>
+            <p><a href="https://developers.google.com/maps/documentation/maps-static/cloud-customization/zoom-levels-leg?hl=ja4{encodeURIComponent(name + " " + facility["住所"])}" target="_blank" rel="noopener noreferrer">Googleマップで詳細を見る</a></p>
           </div>
         `;
 
@@ -767,7 +756,7 @@
           map.setZoom(defaultZoom);
       }
       
-      // マーカー更新後、念のためラベル表示状態を調整
+      // マーカーが更新された後、必ずラベルの表示状態を調整する
       adjustMarkerLabelVisibility();
     }
 
