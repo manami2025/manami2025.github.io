@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>温泉津温泉 店舗マップ</title>
-  <script src="https://maps.googleapis.com/maps/api/js?key=【あなたのGoogleMapsAPIキー】&libraries=places" async defer></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk&libraries=places" async defer></script>
   <style>
     #map {
       width: 100%;
@@ -31,13 +31,16 @@
     let markers = [];
     let bounds;
     let infoWindow;
+    let allFacilities = [];
 
+    // カテゴリー別にアイコン色を定義
     const categoryColors = {
-      "宿泊": "red",
-      "飲食": "blue",
-      "お土産": "green",
-      "観光": "orange",
-      "その他": "gray"
+      "温泉・ケア": "red",
+      "買う": "blue",
+      "見る": "green",
+      "食べる": "purple",
+      "遊ぶ・体験": "yellow",
+      "泊まる": "orange"
     };
 
     window.onload = function () {
@@ -60,14 +63,15 @@
       fetchSpreadsheetData();
     }
 
-    let allFacilities = [];
-
     function fetchSpreadsheetData() {
       const sheetApiUrl =
         "https://sheets.googleapis.com/v4/spreadsheets/1FHCb1dzPiDe6cULzTEGrAtAdmnkUc1TmdLUfu7KXX34/values/シート1?key=AIzaSyB07qN_gNdWzJtvprR3qI0qyQ6ol9AOMUk";
 
       fetch(sheetApiUrl)
-        .then((response) => response.json())
+        .then((response) => {
+          if (!response.ok) throw new Error(`HTTPエラー: ${response.status}`);
+          return response.json();
+        })
         .then((data) => processData(data))
         .catch((error) => console.error("❌ データ取得エラー:", error));
     }
@@ -114,7 +118,7 @@
             url: getIconUrl(category),
           },
           label: {
-            text: name,
+            text: name.length > 10 ? name.slice(0, 10) + "…" : name,
             color: "#000",
             fontSize: "12px",
             fontWeight: "bold",
@@ -134,9 +138,7 @@
           }
           html += `</div>`;
 
-          infoWindow = new google.maps.InfoWindow({
-            content: html
-          });
+          infoWindow = new google.maps.InfoWindow({ content: html });
           infoWindow.open(map, marker);
         });
 
