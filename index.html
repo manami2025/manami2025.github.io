@@ -56,12 +56,12 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       box-sizing: border-box;
       background-color: #fff;
-      appearance: none;
-      background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-6.5%200-12.3%203.2-16.1%208.1-3.9%204.9-5.1%2011.6-3.1%2017.9L139.3%20280.8a17.6%2017.6%200%200%200%2029.4%200L300.2%2090.9c2-6.3.9-13-3-17.9z%22%2F%3E%3C%2Fsvg%3E');
+      appearance: none; /* ドロップダウンのデフォルトスタイルをリセット */
+      background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-6.5%200-12.3%203.2-16.1%208.1-3.9%204.9-5.1%2011.6-3.1%2017.9L139.3%20280.8a17.6%2017.6%200%200%200%2029.4%200L300.2%2090.9c2-6.3.9-13-3-17.9z%22%2F%3E%3C%2Fsvg%3E'); /* ドロップダウン矢印のアイコン */
       background-repeat: no-repeat;
       background-position: right 10px center;
       background-size: 12px;
-      padding-right: 30px;
+      padding-right: 30px; /* 矢印アイコンのスペース確保 */
       cursor: pointer;
     }
 
@@ -143,7 +143,7 @@
         padding: 10px 12px;
       }
       #map {
-        height: calc(100vh - (80px + 1.8em + 1em + 10px*2 + 1px*2 + 20px));
+        height: calc(100vh - (20px + 8px + 20px + 10px + 10px + 10px*2 + 1px*2 + 20px));
         min-height: 350px;
       }
       .gm-style-iw h2 {
@@ -171,7 +171,7 @@
         padding: 8px 10px;
       }
       #map {
-        height: calc(100vh - (60px + 1.6em + 0.95em + 8px*2 + 1px*2 + 15px));
+        height: calc(100vh - (15px + 8px + 15px + 10px + 8px + 8px*2 + 1px*2 + 15px));
         min-height: 280px;
       }
       .gm-style-iw h2 {
@@ -194,7 +194,7 @@
     <input type="text" id="searchBox" placeholder="店舗名やキーワードで検索" />
     <select id="categoryFilter">
       <option value="">全てのカテゴリー</option>
-    </select>
+      </select>
   </div>
 
   <div id="map"></div>
@@ -529,7 +529,7 @@
 
     const defaultCenter = { lat: 35.0963915628715, lng: 132.34470995757528 };
     const defaultZoom = 16;
-    const singleMarkerZoom = 19; 
+    const singleMarkerZoom = 19;
 
     const categoryColors = {
       "温泉・ケア": "red",
@@ -675,12 +675,6 @@
           return formattedText;
       };
 
-      // ラベルの表示状態を決定する変数
-      // `filterMarkers`関数から呼び出される際に、カテゴリーフィルターの状態をチェック
-      const categoryFilterElement = document.getElementById("categoryFilter");
-      // ★変更点: "全てのカテゴリー" (value === "") 以外が選択された場合のみtrue
-      const showLabels = categoryFilterElement && categoryFilterElement.value !== ""; 
-
       facilitiesToDisplay.forEach(facility => {
         const lat = parseFloat(facility["緯度"]);
         const lng = parseFloat(facility["経度"]);
@@ -696,6 +690,9 @@
         const iconWidth = 32;
         const iconHeight = 32;
         
+        const labelOriginX = iconWidth / 2; // アイコンの水平中央にラベルの左端を合わせる
+        const labelOriginY = iconHeight + 5; // アイコンの底から5px下にずらす
+
         const marker = new google.maps.Marker({
           position: position,
           map: map,
@@ -709,9 +706,18 @@
             color: "#888",
             fontSize: "10px",
             fontWeight: "bold",
-            opacity: showLabels ? 1 : 0, // ★変更: カテゴリーフィルターの状態に応じてopacityを設定
+            opacity: 0, // 初期状態ではラベルを非表示 (透明) にする
           },
+          labelOrigin: new google.maps.Point(labelOriginX, labelOriginY),
           animation: google.maps.Animation.DROP
+        });
+
+        marker.addListener("mouseover", () => {
+          marker.setOptions({ label: { ...marker.getLabel(), opacity: 1 } });
+        });
+
+        marker.addListener("mouseout", () => {
+          marker.setOptions({ label: { ...marker.getLabel(), opacity: 0 } });
         });
 
         let infoHtml = `
@@ -722,7 +728,7 @@
             <p><strong>営業時間:</strong> ${facility["営業時間"] || "不明"}</p>
             <p><strong>電話番号:</strong> ${facility["電話番号"] || "なし"}</p>
             ${facility["HP"] ? `<p><a href="${facility["HP"]}" target="_blank" rel="noopener noreferrer">ホームページを見る</a></p>` : ''}
-            <p><a href="https://developers.google.com/maps/documentation/javascript/interaction?hl=ja0{encodeURIComponent(name + " " + facility["住所"])}" target="_blank" rel="noopener noreferrer">Googleマップで詳細を見る</a></p>
+            <p><a href="https://developers.google.com/maps/documentation/maps-static/cloud-customization/zoom-levels-leg?hl=ja0{encodeURIComponent(name + " " + facility["住所"])}" target="_blank" rel="noopener noreferrer">Googleマップで詳細を見る</a></p>
           </div>
         `;
 
@@ -737,9 +743,13 @@
         markers.push(marker);
       });
 
-      // 単一マーカーの場合のズーム調整ロジックも削除し、常にdefaultZoomを使用
-      map.setCenter(defaultCenter);
-      map.setZoom(defaultZoom);
+      if (facilitiesToDisplay.length === 1) {
+          map.setCenter(markers[0].getPosition());
+          map.setZoom(singleMarkerZoom);
+      } else {
+          map.setCenter(defaultCenter);
+          map.setZoom(defaultZoom);
+      }
     }
 
     function filterMarkers() {
