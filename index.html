@@ -89,8 +89,8 @@
         padding: 5px; /* インフォウィンドウ内のパディング */
     }
     .gm-style-iw .info-window-image {
-        width: 100%; /* ★変更: 幅を100%にする */
-        height: 120px; /* ★変更: 高さを制限する */
+        width: 100%; /* 幅を100%にする */
+        height: 120px; /* 高さを制限する */
         object-fit: cover; /* 画像が引き伸ばされずにコンテナを覆うように */
         border-radius: 4px;
         margin-bottom: 8px;
@@ -117,7 +117,7 @@
         color: #444;
         margin-top: 5px;
         margin-bottom: 10px;
-        white-space: pre-wrap;
+        white-space: pre-wrap; /* 改行を保持し、折り返す */
     }
     .gm-style-iw strong {
         color: #444;
@@ -147,9 +147,9 @@
     }
     /* 電話番号リンクのスタイル */
     .gm-style-iw .tel-link {
-        color: #007bff; /* 青系のリンク色 */
+        color: #007bff;
         text-decoration: none;
-        font-weight: normal; /* 太字にしない */
+        font-weight: normal;
     }
     .gm-style-iw .tel-link:hover {
         text-decoration: underline;
@@ -191,7 +191,7 @@
         font-size: 0.65em;
       }
       .gm-style-iw .info-window-image {
-        height: 100px; /* モバイルで写真の高さをさらに制限 */
+        height: 100px;
       }
     }
 
@@ -222,7 +222,7 @@
         font-size: 0.6em;
       }
       .gm-style-iw .info-window-image {
-        height: 80px; /* 非常に小さい画面で写真の高さをさらに制限 */
+        height: 80px;
       }
     }
   </style>
@@ -694,7 +694,7 @@
 
       const formatLabelText = (text) => {
           if (!text) return '';
-          const maxChars = 10;
+          const maxChars = 10; // 10文字まで表示
           if (text.length > maxChars) {
               return text.substring(0, maxChars - 1) + '…'; 
           }
@@ -708,6 +708,7 @@
         const title = facility["タイトル"] || name;
         const photoUrl = facility["写真"] || ''; 
         const bodyText = facility["本文"] || ''; 
+        const telNumber = facility["電話番号"] || ''; // 電話番号を取得
         const reservationUrl = facility["予約"] || ''; 
         const category = facility["カテゴリー"] || "その他";
 
@@ -738,15 +739,16 @@
           animation: google.maps.Animation.DROP
         });
 
+        // 情報ウィンドウのHTMLを生成
         let infoHtml = `
           <div class="info-window-content">
             ${photoUrl ? `<img src="${photoUrl}" alt="${name}" class="info-window-image">` : ''}
             <h3>${name}</h3>
             ${bodyText ? `<p class="info-body-text">${bodyText}</p>` : ''}
-            <p><strong>カテゴリ:</strong> ${category}</p>
-            <p><strong>定休日:</strong> ${facility["定休日"] || "なし"}</p>
-            <p><strong>営業時間:</strong> ${facility["営業時間"] || "不明"}</p>
-            <p><strong>電話番号:</strong> ${facility["電話番号"] || "なし"}</p>
+            ${facility["カテゴリー"] ? `<p><strong>カテゴリ:</strong> ${category}</p>` : ''}
+            ${facility["定休日"] ? `<p><strong>定休日:</strong> ${facility["定休日"]}</p>` : ''}
+            ${facility["営業時間"] ? `<p><strong>営業時間:</strong> ${facility["営業時間"]}</p>` : ''}
+            ${telNumber ? `<p><strong>電話番号:</strong> <a href="tel:${telNumber}" class="tel-link">${telNumber}</a></p>` : ''}
             ${facility["HP"] ? `<p><a href="${facility["HP"]}" target="_blank" rel="noopener noreferrer">ホームページを見る</a></p>` : ''}
             ${reservationUrl ? `<a href="${reservationUrl}" target="_blank" rel="noopener noreferrer" class="reservation-link">ご予約はこちら</a>` : ''}
           </div>
