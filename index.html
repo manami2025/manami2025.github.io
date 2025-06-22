@@ -113,7 +113,7 @@
       padding: 0;
     }
     .gm-style-iw .info-body-text {
-        font-size: 0.85em; /* ★変更: 本文の文字サイズを大きく */
+        font-size: 0.85em;
         color: #444;
         margin-top: 5px;
         margin-bottom: 10px;
@@ -130,21 +130,49 @@
     .gm-style-iw a:hover {
       text-decoration: underline;
     }
-    .gm-style-iw .reservation-link {
-        display: block;
+    /* ボタン共通スタイル */
+    .gm-style-iw .info-button {
+        display: block; /* ブロック要素にして独立した行に表示 */
         text-align: center;
-        margin-top: 10px;
+        margin-top: 8px; /* ボタン間のスペースを調整 */
         padding: 8px 12px;
-        background-color: #28a745;
-        color: white;
         border-radius: 5px;
         text-decoration: none;
         font-weight: bold;
+        transition: background-color 0.2s ease; /* ホバーアニメーション */
+        box-sizing: border-box; /* パディングとボーダーを幅に含める */
     }
-    .gm-style-iw .reservation-link:hover {
-        background-color: #218838;
+    .gm-style-iw .info-button:hover {
         text-decoration: none;
     }
+
+    /* 予約ボタン固有スタイル */
+    .gm-style-iw .reservation-button {
+        background-color: #28a745; /* 緑系のボタン色 */
+        color: white;
+    }
+    .gm-style-iw .reservation-button:hover {
+        background-color: #218838; /* ホバー時の色 */
+    }
+
+    /* SNSボタン固有スタイル */
+    .gm-style-iw .sns-button {
+        background-color: #007bff; /* 青系のボタン色 */
+        color: white;
+    }
+    .gm-style-iw .sns-button:hover {
+        background-color: #0056b3; /* ホバー時の色 */
+    }
+    /* HPボタン固有スタイル */
+    .gm-style-iw .hp-button {
+        background-color: #6c757d; /* グレー系のボタン色 */
+        color: white;
+    }
+    .gm-style-iw .hp-button:hover {
+        background-color: #5a6268; /* ホバー時の色 */
+    }
+
+
     .gm-style-iw .tel-link {
         color: #007bff;
         text-decoration: none;
@@ -187,10 +215,10 @@
         font-size: 0.9em;
       }
       .gm-style-iw .info-body-text {
-        font-size: 0.8em; /* ★変更: モバイルでの本文文字サイズも調整 */
+        font-size: 0.8em;
       }
-      .gm-style-iw iframe {
-        height: 150px;
+      .gm-style-iw .info-window-image {
+        height: 100px;
       }
     }
 
@@ -218,7 +246,7 @@
         font-size: 0.85em;
       }
       .gm-style-iw .info-body-text {
-        font-size: 0.75em; /* ★変更: 非常に小さい画面での本文文字サイズも調整 */
+        font-size: 0.75em;
       }
       .gm-style-iw iframe {
         height: 120px;
@@ -228,7 +256,7 @@
 </head>
 <body>
   <h2>温泉津温泉 一覧マップ</h2>
-  <p>温泉津温泉の宿泊、飲食、お土産屋さんをまとめました。クリックして詳細をご覧ください。</p>
+  <p>温泉津温泉の宿泊、飲食、お土産屋さんをまとめました。リンクをクリックして詳細をご覧ください。</p>
   
   <div class="filter-controls">
     <input type="text" id="searchBox" placeholder="店舗名やキーワードで検索" />
@@ -746,8 +774,8 @@
             ${facility["定休日"] ? `<p><strong>定休日:</strong> ${facility["定休日"]}</p>` : ''}
             ${facility["営業時間"] ? `<p><strong>営業時間:</strong> ${facility["営業時間"]}</p>` : ''}
             ${telNumber ? `<p><strong>電話番号:</strong> <a href="tel:${telNumber}" class="tel-link">${telNumber}</a></p>` : ''}
-            ${facility["HP"] ? `<p><a href="${facility["HP"]}" target="_blank" rel="noopener noreferrer">ホームページを見る</a></p>` : ''}
-            ${reservationUrl ? `<a href="${reservationUrl}" target="_blank" rel="noopener noreferrer" class="reservation-link">ご予約はこちら</a>` : ''}
+            ${facility["HP"] ? `<p><a href="${facility["HP"]}" target="_blank" rel="noopener noreferrer" class="info-button hp-button">ホームページを見る</a></p>` : ''}
+            ${reservationUrl ? `<a href="${reservationUrl}" target="_blank" rel="noopener noreferrer" class="info-button reservation-button">ご予約はこちら</a>` : ''}
           </div>
         `;
 
