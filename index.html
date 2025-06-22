@@ -651,41 +651,28 @@
         infoWindow = null;
       }
 
+      // formatLabelText 関数を、10文字を超える場合にのみ「...」を追加する形に修正
       const formatLabelText = (text) => {
           if (!text) return '';
-          let formattedText = '';
-          const maxCharsPerLine = 5;
-          const totalMaxChars = maxCharsPerLine * 2; 
-
-          let displayableText = text.substring(0, totalMaxChars);
-          if (text.length > totalMaxChars) {
-              displayableText = text.substring(0, totalMaxChars - 1) + '…'; 
-              if (displayableText.length > totalMaxChars) {
-                 displayableText = displayableText.substring(0, totalMaxChars - 1) + '…';
-              }
+          const maxChars = 10; // 10文字まで表示
+          if (text.length > maxChars) {
+              return text.substring(0, maxChars - 1) + '…'; 
           }
-          
-          for (let i = 0; i < displayableText.length; i += maxCharsPerLine) {
-              formattedText += displayableText.substring(i, i + maxCharsPerLine);
-              if (i + maxCharsPerLine < displayableText.length) {
-                  formattedText += '\n';
-              }
-          }
-          
-          return formattedText;
+          return text;
       };
 
-      // ラベルの表示状態を決定する変数
-      const categoryFilterElement = document.getElementById("categoryFilter");
-      // ★変更点: "全てのカテゴリー" (value === "") が選択された場合のみfalse (非表示)
-      // それ以外の特定のカテゴリーが選択された場合はtrue (表示)
-      const showLabels = categoryFilterElement && categoryFilterElement.value !== ""; 
+      // ラベルの表示状態を決定する変数は削除します
+      // const categoryFilterElement = document.getElementById("categoryFilter");
+      // const showLabels = categoryFilterElement && categoryFilterElement.value !== ""; 
 
       facilitiesToDisplay.forEach(facility => {
         const lat = parseFloat(facility["緯度"]);
         const lng = parseFloat(facility["経度"]);
-        const name = facility["場所"] || "名称不明"; // 場所のデータを取得
-        const title = facility["タイトル"] || name; // タイトル列のデータを取得、なければ場所
+        const name = facility["場所"] || "名称不明"; 
+        const title = facility["タイトル"] || name;
+        const photoUrl = facility["写真"] || ''; 
+        const bodyText = facility["本文"] || ''; 
+        const reservationUrl = facility["予約"] || ''; 
         const category = facility["カテゴリー"] || "その他";
 
         if (isNaN(lat) || isNaN(lng)) {
@@ -700,28 +687,32 @@
         const marker = new google.maps.Marker({
           position: position,
           map: map,
-          title: name, // マウスオーバー時のツールチップは元の場所の名前のままにしておく
+          title: name, 
           icon: {
             url: getIconUrl(category),
             scaledSize: new google.maps.Size(iconWidth, iconHeight),
           },
           label: {
-            text: formatLabelText(title), // ★変更: マーカーラベルのテキストを「タイトル」列にする
+            text: formatLabelText(title), // 「タイトル」列のテキスト
             color: "#888",
             fontSize: "10px",
             fontWeight: "bold",
-            opacity: showLabels ? 1 : 0, // カテゴリーフィルターの状態に応じてopacityを設定
+            opacity: 1, // ★変更: ラベルを常に表示 (opacity: 1)
           },
           animation: google.maps.Animation.DROP
         });
 
         let infoHtml = `
-          <div class="info-window">
-            <h3>${name}</h3> <p><strong>カテゴリ:</strong> ${category}</p>
+          <div class="info-window-content">
+            ${photoUrl ? `<img src="${photoUrl}" alt="${name}" class="info-window-image">` : ''}
+            <h3>${name}</h3>
+            ${bodyText ? `<p class="info-body-text">${bodyText}</p>` : ''}
+            <p><strong>カテゴリ:</strong> ${category}</p>
             <p><strong>定休日:</strong> ${facility["定休日"] || "なし"}</p>
             <p><strong>営業時間:</strong> ${facility["営業時間"] || "不明"}</p>
             <p><strong>電話番号:</strong> ${facility["電話番号"] || "なし"}</p>
             ${facility["HP"] ? `<p><a href="${facility["HP"]}" target="_blank" rel="noopener noreferrer">ホームページを見る</a></p>` : ''}
+            ${reservationUrl ? `<a href="${reservationUrl}" target="_blank" rel="noopener noreferrer" class="reservation-link">ご予約はこちら</a>` : ''}
           </div>
         `;
 
@@ -746,12 +737,13 @@
 
       let filteredFacilities = allFacilities.filter(facility => {
         const place = facility["場所"] ? facility["場所"].toLowerCase() : "";
-        const title = facility["タイトル"] ? facility["タイトル"].toLowerCase() : ""; // タイトル列も検索対象に
+        const title = facility["タイトル"] ? facility["タイトル"].toLowerCase() : ""; 
         const category = facility["カテゴリー"] ? facility["カテゴリー"].toLowerCase() : "";
         const address = facility["住所"] ? facility["住所"].toLowerCase() : "";
         const description = facility["説明"] ? facility["説明"].toLowerCase() : "";
+        const bodyText = facility["本文"] ? facility["本文"].toLowerCase() : ""; 
 
-        const keywordMatch = (keyword === "" || place.includes(keyword) || title.includes(keyword) || address.includes(keyword) || description.includes(keyword));
+        const keywordMatch = (keyword === "" || place.includes(keyword) || title.includes(keyword) || address.includes(keyword) || description.includes(keyword) || bodyText.includes(keyword));
         const categoryMatch = (selectedCategory === "" || category === selectedCategory);
 
         return keywordMatch && categoryMatch;
