@@ -113,7 +113,7 @@
       padding: 0;
     }
     .gm-style-iw .info-body-text {
-        font-size: 0.7em;
+        font-size: 0.85em; /* ★変更: 本文の文字サイズを大きく */
         color: #444;
         margin-top: 5px;
         margin-bottom: 10px;
@@ -187,10 +187,10 @@
         font-size: 0.9em;
       }
       .gm-style-iw .info-body-text {
-        font-size: 0.65em;
+        font-size: 0.8em; /* ★変更: モバイルでの本文文字サイズも調整 */
       }
-      .gm-style-iw .info-window-image {
-        height: 100px;
+      .gm-style-iw iframe {
+        height: 150px;
       }
     }
 
@@ -218,10 +218,10 @@
         font-size: 0.85em;
       }
       .gm-style-iw .info-body-text {
-        font-size: 0.6em;
+        font-size: 0.75em; /* ★変更: 非常に小さい画面での本文文字サイズも調整 */
       }
-      .gm-style-iw .info-window-image {
-        height: 80px;
+      .gm-style-iw iframe {
+        height: 120px;
       }
     }
   </style>
@@ -738,7 +738,6 @@
           animation: google.maps.Animation.DROP
         });
 
-        // 情報ウィンドウのHTMLを生成
         let infoHtml = `
           <div class="info-window-content">
             ${photoUrl ? `<img src="${photoUrl}" alt="${name}" class="info-window-image">` : ''}
