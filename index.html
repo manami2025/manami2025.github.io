@@ -677,13 +677,15 @@
 
       // ラベルの表示状態を決定する変数
       const categoryFilterElement = document.getElementById("categoryFilter");
-      // ★変更点: "全てのカテゴリー" (value === "") *以外* が選択された場合のみtrue
+      // ★変更点: "全てのカテゴリー" (value === "") が選択された場合のみfalse (非表示)
+      // それ以外の特定のカテゴリーが選択された場合はtrue (表示)
       const showLabels = categoryFilterElement && categoryFilterElement.value !== ""; 
 
       facilitiesToDisplay.forEach(facility => {
         const lat = parseFloat(facility["緯度"]);
         const lng = parseFloat(facility["経度"]);
-        const name = facility["場所"] || "名称不明";
+        const name = facility["場所"] || "名称不明"; // 場所のデータを取得
+        const title = facility["タイトル"] || name; // タイトル列のデータを取得、なければ場所
         const category = facility["カテゴリー"] || "その他";
 
         if (isNaN(lat) || isNaN(lng)) {
@@ -698,25 +700,24 @@
         const marker = new google.maps.Marker({
           position: position,
           map: map,
-          title: name,
+          title: name, // マウスオーバー時のツールチップは元の場所の名前のままにしておく
           icon: {
             url: getIconUrl(category),
             scaledSize: new google.maps.Size(iconWidth, iconHeight),
           },
           label: {
-            text: formatLabelText(name),
+            text: formatLabelText(title), // ★変更: マーカーラベルのテキストを「タイトル」列にする
             color: "#888",
             fontSize: "10px",
             fontWeight: "bold",
-            opacity: showLabels ? 1 : 0, // ★変更: カテゴリーフィルターの状態に応じてopacityを設定
+            opacity: showLabels ? 1 : 0, // カテゴリーフィルターの状態に応じてopacityを設定
           },
           animation: google.maps.Animation.DROP
         });
 
         let infoHtml = `
           <div class="info-window">
-            <h3>${name}</h3>
-            <p><strong>カテゴリ:</strong> ${category}</p>
+            <h3>${name}</h3> <p><strong>カテゴリ:</strong> ${category}</p>
             <p><strong>定休日:</strong> ${facility["定休日"] || "なし"}</p>
             <p><strong>営業時間:</strong> ${facility["営業時間"] || "不明"}</p>
             <p><strong>電話番号:</strong> ${facility["電話番号"] || "なし"}</p>
@@ -745,11 +746,12 @@
 
       let filteredFacilities = allFacilities.filter(facility => {
         const place = facility["場所"] ? facility["場所"].toLowerCase() : "";
+        const title = facility["タイトル"] ? facility["タイトル"].toLowerCase() : ""; // タイトル列も検索対象に
         const category = facility["カテゴリー"] ? facility["カテゴリー"].toLowerCase() : "";
         const address = facility["住所"] ? facility["住所"].toLowerCase() : "";
         const description = facility["説明"] ? facility["説明"].toLowerCase() : "";
 
-        const keywordMatch = (keyword === "" || place.includes(keyword) || address.includes(keyword) || description.includes(keyword));
+        const keywordMatch = (keyword === "" || place.includes(keyword) || title.includes(keyword) || address.includes(keyword) || description.includes(keyword));
         const categoryMatch = (selectedCategory === "" || category === selectedCategory);
 
         return keywordMatch && categoryMatch;
